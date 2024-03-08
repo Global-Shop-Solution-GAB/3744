@@ -1,0 +1,617 @@
+Program.Sub.ScreenSU.Start
+gui.SS_Form1..create
+gui.SS_Form1..caption("Ncell Cutoff Date")
+gui.SS_Form1..size(2370,1740)
+gui.SS_Form1..minx(0)
+gui.SS_Form1..miny(0)
+gui.SS_Form1..position(0,0)
+gui.SS_Form1..event(unload,unload)
+gui.SS_Form1..alwaysontop(False)
+gui.SS_Form1..fontname("Arial")
+gui.SS_Form1..fontsize(8)
+gui.SS_Form1..forecolor(0)
+gui.SS_Form1..fontstyle(,,,,)
+gui.SS_Form1..BackColor(-2147483633)
+gui.SS_Form1..controlbox(True)
+gui.SS_Form1..maxbutton(False)
+gui.SS_Form1..minbutton(False)
+gui.SS_Form1..mousepointer(0)
+gui.SS_Form1..moveable(True)
+gui.SS_Form1..sizeable(False)
+gui.SS_Form1..ShowInTaskBar(True)
+gui.SS_Form1..titlebar(True)
+gui.SS_Form1.lbl_dtpCutoff.create(label,"Cutoff Date",True,1800,200,1,100,135,True,0,Arial,8,-2147483633,0)
+gui.SS_Form1.lbl_dtpCutoff.defaultvalue("")
+gui.SS_Form1.lbl_dtpCutoff.controlgroup(0)
+gui.SS_Form1.dtpCutoff.create(datepicker)
+gui.SS_Form1.dtpCutoff.visible(True)
+gui.SS_Form1.dtpCutoff.size(1800,345)
+gui.SS_Form1.dtpCutoff.zorder(0)
+gui.SS_Form1.dtpCutoff.position(100,335)
+gui.SS_Form1.dtpCutoff.enabled(True)
+gui.SS_Form1.dtpCutoff.checkbox(False)
+gui.SS_Form1.dtpCutoff.defaultvalue("")
+gui.SS_Form1.dtpCutoff.controlgroup(0)
+gui.SS_Form1.cmdGo.create(button)
+gui.SS_Form1.cmdGo.caption("Go")
+gui.SS_Form1.cmdGo.visible(True)
+gui.SS_Form1.cmdGo.size(1000,360)
+gui.SS_Form1.cmdGo.zorder(0)
+gui.SS_Form1.cmdGo.position(100,765)
+gui.SS_Form1.cmdGo.enabled(True)
+gui.SS_Form1.cmdGo.fontname("Arial")
+gui.SS_Form1.cmdGo.fontsize(8)
+gui.SS_Form1.cmdGo.event(click,cmdgo_click)
+gui.SS_Form1.cmdGo.defaultvalue("")
+gui.SS_Form1.cmdGo.controlgroup(0)
+gui.SS_Form1.dtpCutoff.tabstop(true)
+gui.SS_Form1.dtpCutoff.tabindex(1)
+gui.SS_Form1.cmdGo.tabstop(true)
+gui.SS_Form1.cmdGo.tabindex(2)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Variable.Global.sFileLoc.Declare(String)
+Variable.UDT.uQty.Define("PART",String)
+Variable.UDT.uQty.Define("QTY",Float)
+Variable.uGlobal.uQty.Declare("uQty")
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.dDate.Declare(Date)
+
+F.ODBC.Connection!Con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+
+' verify the license
+'F.Intrinsic.UI.InvokeWaitDialog("Verifying License","GSS To Ncell File")
+F.Intrinsic.Control.CallSub(Licenseverification)
+
+' find the path to write the files
+'F.Intrinsic.UI.ChangeWaitStatus("Verifying File Location")
+F.Intrinsic.Control.CallSub(Filepath)
+V.Global.sFileLoc.Set(V.Args.FILELOC)
+'3/11/15 -sas -- per Russ, add screen to pop up and allow them to set the cutoff date so that only jobs before that date will be added to the file. The date will also be automatically set 10 days in advance.
+'F.Intrinsic.Date.DateAdd("D",10,V.Ambient.Date,V.Local.dDate)
+'Gui.SS_Form1.dtpCutoff.Value(V.Local.dDate)
+'Gui.SS_Form1..Show
+' find valid Workcenters
+F.Intrinsic.UI.InvokeWaitDialog("Getting Valid Work Centers","GSS To Ncell File")
+'F.Intrinsic.Control.CallSub(Getvalidwcs)
+
+' Write the output file
+F.Intrinsic.UI.ChangeWaitStatus("Writing Export File")
+'F.Intrinsic.Control.CallSub(Writefile,"WC",V.Args.WC)
+F.Intrinsic.Control.CallSub(Writefile)
+
+' that's all
+F.Intrinsic.UI.CloseWaitDialog
+F.Intrinsic.Control.CallSub(Unload)
+
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_TO_NCELL-JONES.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+Program.Sub.LicenseVerification.Start
+F.Intrinsic.Control.SetErrorHandler("LicenseVerification_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+
+
+V.Local.bLicensed.Declare(Boolean)
+
+' if license is not found, the script will end
+f.Global.General.IsLicensedByModuleName("NES",v.Local.bLicensed)
+F.Intrinsic.Control.If(V.Local.bLicensed,=,False)
+	F.Intrinsic.UI.Msgbox("Not Licensed for Nesting Integrations")
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("LicenseVerification_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_TO_NCELL-JONES.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.LicenseVerification.End
+
+Program.Sub.filePath.Start
+F.Intrinsic.Control.SetErrorHandler("filePath_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+
+V.Local.sSel.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sHold.Declare(String)
+V.Local.sVal.Declare(String)
+V.Local.bRet.Declare(Boolean)
+V.Local.sFile.Declare(String)
+V.Local.iFor.Declare(Long)
+
+' see if the credential file is found
+F.Intrinsic.String.Build("{0}\NCELL.dat",V.Caller.FilesDir,V.Local.sFile)
+F.Intrinsic.File.Exists(V.Local.sFile,V.Local.bRet)
+
+' if the file is found, look for the INPUT line
+F.Intrinsic.Control.If(V.Local.bRet,=,True)
+	F.Intrinsic.File.File2String(V.Local.sFile,V.Local.sRet)
+	F.Intrinsic.String.Split(V.Local.sRet,V.Ambient.NewLine,V.Local.sRet)
+	F.Intrinsic.Control.For(V.Local.iFor,V.Local.sRet.LBound,V.Local.sRet.UBound,1)
+		F.Intrinsic.String.Split(V.Local.sRet(v.Local.iFor),"::",V.Local.sHold)
+		V.Local.sHold.RedimPreserve(0,1)
+		F.Intrinsic.Control.SelectCase(V.Local.sHold(0))
+		F.Intrinsic.Control.Case("INPUT")
+			V.Local.sVal.Set(V.Local.sHold(1))
+			F.Intrinsic.Control.ExitFor(V.Local.iFor)
+		F.Intrinsic.Control.EndSelect
+	F.Intrinsic.Control.Next(V.Local.iFor)
+F.Intrinsic.Control.EndIf
+
+' if the path is not found, alert the user
+F.Intrinsic.Control.If(V.Local.sVal,=,"")
+	F.Intrinsic.UI.Msgbox("INPUT file path not found.")
+	F.Intrinsic.Control.CallSub(Unload)
+
+' if the path is found, make sure it exists
+F.Intrinsic.Control.Else
+	F.Intrinsic.File.DirExists(V.Local.sVal,V.Local.bRet)
+	F.Intrinsic.Control.If(V.Local.bRet,=,False)
+		F.Intrinsic.String.Build("Invalid directory {0}.  Please correct NCELL.DAT.",V.Local.sVal,V.Local.sError)
+		F.Intrinsic.UI.Msgbox(V.Local.sError)
+		F.Intrinsic.Control.CallSub(Unload)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Variable.AddRV("FILELOC",V.Local.sVal)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("filePath_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_TO_NCELL-JONES.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.filePath.End
+
+Program.Sub.writeFile.Start
+F.Intrinsic.Control.SetErrorHandler("writeFile_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+
+V.Local.sSel.Declare(String)
+V.Local.sSelB.Declare(String)
+V.Local.sJobSuff.Declare(String)
+V.Local.sJob.Declare(String)
+V.Local.sSO.Declare(String)
+V.Local.sMat.Declare(String)
+V.Local.sAddtlSeq.Declare(String)
+V.Local.sJobData.Declare(String)
+V.Local.sNcellFile.Declare(String)
+V.Local.sTmpFIle.Declare(String)
+V.Local.lHndl.Declare(Long)
+V.Local.bExists.Declare(Boolean)
+V.Local.lFor.Declare(Long)
+V.Local.iWait.Declare(Long)
+V.Local.icount.Declare(Long)
+V.Local.iHwnd.Declare(Long)
+V.Local.sRet.Declare(String)
+V.Local.sCustomer.Declare(String)
+V.Local.sOP.Declare(String)
+V.Local.sPO.Declare(String)
+V.Local.iRet.Declare(Long)
+V.Local.sBkp.Declare(String)
+V.Local.sFileData.Declare(String)
+V.Local.sHold.Declare(String)
+V.Local.sRev.Declare(String)
+V.Local.dDate.Declare(Date)
+V.Local.iUDTPos.Declare(Long)
+V.Local.sPartRet.Declare(String)
+V.Local.fPartQty.Declare(Float)
+
+'first update Job Operations.Part to the WC from UBDetail, this will prevent further scheduling from changing to a different WC.
+'F.Intrinsic.String.Build("Select * from APSV3_UBDetail where SAR in ('{0}') ",V.Args.WC,V.Local.sSel)
+'F.ODBC.Connection!Con.OpenRecordsetRO("rstUB",V.Local.sSel)
+''F.Intrinsic.Control.If(V.ODBC.Con!rstUB.EOF,<>,True)
+'	F.Intrinsic.Control.DoUntil(V.ODBC.Con!rstUB.EOF,=,True)
+'		F.Intrinsic.String.LPad(V.ODBC.Con!rstUB.FieldValTrim!SEQ,"0",6,V.Local.sSelB)
+''
+''		'Check to see if job on hold, if on hold then skip
+''		F.Intrinsic.String.Build("Select FLAG_HOLD from v_JOB_HEADER where JOB = '{0}' and SUFFIX = '{1}' ",V.ODBC.Con!rstUB.FieldValTrim!JOB,V.ODBC.Con!rstUB.FieldValTrim!SFX,V.Local.sSel)
+''		F.ODBC.Connection!Con.OpenRecordsetRO("rstHold",V.Local.sSel)
+''		F.Intrinsic.Control.If(V.ODBC.Con!rstHold.EOF,<>,True)
+''
+''			F.Intrinsic.Control.If(V.ODBC.Con!rstHold.FieldValTrim!FLAG_HOLD,<>,"Y")
+''				'update Job Operations.Part to the WC from UBDetail
+'				F.Intrinsic.String.Build("update job_operations set PART = '{0}' where JOB = '{1}' and SUFFIX = '{2}' and SEQ = '{3}' ",V.ODBC.Con!rstUB.FieldValTrim!SAR,V.ODBC.Con!rstUB.FieldValTrim!JOB,V.ODBC.Con!rstUB.FieldValTrim!SFX,V.Local.sSelB,V.Local.sSel)
+'				F.ODBC.Connection!Con.Execute(V.Local.sSel)
+''				F.Intrinsic.String.Build("UPDATE APSV3_JBLINES SET SEQRES = '{0}' WHERE JOB = '{1}' AND SFX = '{2}' AND SEQ = '{3}' ",V.ODBC.Con!rstUB.FieldValTrim!SAR,V.ODBC.Con!rstUB.FieldValTrim!JOB,V.ODBC.Con!rstUB.FieldValTrim!SFX,V.ODBC.Con!rstUB.FieldValTrim!SEQ,V.Local.sSel)
+''				F.ODBC.Connection!Con.Execute(V.Local.sSel)
+''			F.Intrinsic.Control.EndIf
+''
+''		F.Intrinsic.Control.EndIf
+''		F.ODBC.Con!rstHold.Close
+''
+'		F.ODBC.Con!rstUB.MoveNext
+'	F.Intrinsic.Control.Loop
+''F.Intrinsic.Control.EndIf
+'F.ODBC.Con!rstUB.Close
+V.uGlobal.uQty.Redim(-1,-1)
+
+'3/11/16 sas - per Russ, I added a date picker for cutoff so that we will only export jobs that are before cutoff date
+V.Local.dDate.Set(V.Screen.SS_Form1!dtpCutoff.Value)
+' 11/2/2015 -- jct -- per Russ, new data line should be:
+' WO~Seq~DXF file~Router Revision~FG Description~WC~LMO~QTY~Seq Due Date~Raw Material~Customer~Code Sort~Operation
+'F.Intrinsic.String.Build("select Job,'-',Suffix, Seq, 'DXF','REV', 'DESCR', rtrim(Part), LMO, Units_Open, Date_Due, 'NCELLMAT','CUST', rtrim(Code_Sort_Oper),'OP' from v_Job_Operations where LMO = 'L' and Flag_Closed <> 'Y' and Part in ('{0}') and Date_Due <= '{1}' ORDER BY DATE_DUE ASC",V.Args.WC,V.Local.dDate.PervasiveDate,V.Local.sSel)
+F.ODBC.Connection!Con.OpenLocalRecordsetRO("rstLoad","SELECT * FROM GCG_3744_NCELL_TRUMP WHERE PART like 'LS%' ")
+F.Intrinsic.Control.DoUntil(V.ODBC.Con!rstLoad.EOF,=,True)
+
+	F.Intrinsic.String.Build("select Job,'-',Suffix, Seq, 'DXF','REV', 'DESCR', rtrim(Part), LMO, Units_Open, Date_Due, 'NCELLMAT','CUST', rtrim(Code_Sort_Oper),'OP' from v_Job_Operations where LMO = 'L' and Flag_Closed <> 'Y' and JOB = '{0}' AND SUFFIX = '{1}' AND SEQ = '{2}' ORDER BY DATE_DUE ASC",V.ODBC.Con!rstLoad.FieldValTrim!JOB,V.ODBC.Con!rstLoad.FieldValTrim!SUFFIX,V.ODBC.Con!rstLoad.FieldValTrim!SEQ,V.Local.sSel)
+
+	'F.Intrinsic.String.Build("select Job,'-',Suffix, Seq, 'DXF','REV', 'DESCR', rtrim(Part), LMO, Units_Open, Date_Due, 'NCELLMAT','CUST', rtrim(Code_Sort_Oper),'OP' from v_Job_Operations where LMO = 'L' and Flag_Closed <> 'Y' and Part in ('*LAS','LS01','LS02','LS03','LS04','LS05') and Date_Due <= '{0}' ",V.Local.dDate.PervasiveDate,V.Local.sSel)
+	F.ODBC.Connection!Con.OpenRecordsetRO("rstX",V.Local.sSel)
+'	F.Intrinsic.Control.DoUntil(V.ODBC.Con!rstX.EOF,=,True)
+	F.Intrinsic.Control.If(V.ODBC.Con!rstX.EOF,=,False)
+		'check to make sure job is not on hold.
+'		F.Intrinsic.String.Build("Select FLAG_HOLD, DATE_CLOSED from v_JOB_HEADER where JOB = '{0}' and SUFFIX = '{1}' ",V.ODBC.Con!rstX.FieldValTrim!Job,V.ODBC.Con!rstX.FieldValTrim!Suffix,V.Local.sSel)
+'		F.ODBC.Connection!Con.OpenRecordsetRO("rstHold",V.Local.sSel)
+'		F.Intrinsic.Control.If(V.ODBC.Con!rstHold.EOF,<>,True)
+	'		F.Intrinsic.Date.ConvertDString("01/01/1900","MM/DD/YYYY",V.Local.dDate)
+			'IF IT IS NOT ON HOLD AND THE DATE CLOSED EQUALS THE DEFAULT DATE THEN KEEP GOING
+	F.Intrinsic.Debug.Stop
+
+'			F.Intrinsic.Control.If(V.ODBC.Con!rstHold.FieldValTrim!FLAG_HOLD,<>,"Y","AND",V.ODBC.Con!rstHold.FieldValTrim!DATE_CLOSED,=,"1/1/1900")
+				'LEGS GET THE MATERIAL PART
+
+
+'				F.Intrinsic.String.Build("select Part, HOURS_ESTIMATED from Job_Operations where LMO = 'M' and Job = '{0}' and Suffix = '{1}' and Seq < '{2}' and Part <> '' order by Seq desc",V.ODBC.Con!rstX.FieldValTrim!JOB,V.ODBC.Con!rstX.FieldValTrim!SUFFIX,V.ODBC.Con!rstX.FieldVal!SEQ,V.Local.sSelB)
+'				F.ODBC.Connection!Con.OpenLocalRecordsetRO("rstCheck",V.Local.sSelB)
+'				F.Intrinsic.Control.If(V.ODBC.Con!rstCheck.EOF,=,False)
+'					'CHECK TO SEE IF THE PART IS IN THE UDT
+'					F.Intrinsic.Variable.UDTMultiSeek(V.uGlobal.uQty!PART,V.ODBC.Con!rstCheck.FieldValTrim!PART,V.Local.sPartRet)
+'					'WE DONT HAVE TEH PART IN THE UDT SO ADD IT AND GET THE QTY ON HAND
+'					F.Intrinsic.Control.If(V.Local.sPartRet.Trim,=,"")
+'						F.Intrinsic.Control.If(V.uGlobal.uQty.UBound,=,-1)
+'							V.uGlobal.uQty.Redim(0,0)
+'							V.Local.iUDTPos.Set(0)
+'						F.Intrinsic.Control.Else
+'							F.Intrinsic.Math.Add(V.uGlobal.uQty.UBound,1,V.Local.iUDTPos)
+'							V.uGlobal.uQty.RedimPreserve(0,V.Local.iUDTPos)
+'						F.Intrinsic.Control.EndIf
+'						'GET THE QTY ON HAND FOR THE PART
+'						F.Intrinsic.String.Build("SELECT QTY_ONHAND FROM V_INVENTORY_MSTR WHERE PART = '{0}' ",V.ODBC.Con!rstCheck.FieldValTrim!PART,V.Local.sSelB)
+'						F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSelB,V.Local.sPartRet)
+'						F.Intrinsic.String.Replace(V.Local.sPartRet,"*!*","",V.Local.sPartRet)
+'						V.uGlobal.uQty(V.Local.iUDTPos)!PART.Set(V.ODBC.Con!rstCheck.FieldValTrim!PART)
+'						V.uGlobal.uQty(V.Local.iUDTPos)!QTY.Set(V.Local.sPartRet.Float)
+'
+'						'NOW CHECK TO SEE IF WE CAN MAKE ENOUGH
+'						F.Intrinsic.Control.If(V.ODBC.Con!rstCheck.FieldValFloat!HOURS_ESTIMATED,>,V.uGlobal.uQty(V.Local.iUDTPos)!QTY)
+'							'WE DON'T HAVE ENOUGH SO GO TO THE NEXT ONE
+'							F.ODBC.Con!rstCheck.Close
+'							F.Intrinsic.Control.GoTo("NEXT")
+'						F.Intrinsic.Control.Else
+'							'WE HAVE ENOUGH SO SUBTRACT AND SET THE UDT AND KEEP MOVING
+'							F.Intrinsic.Math.Sub(V.uGlobal.uQty(V.Local.iUDTPos)!QTY,V.ODBC.Con!rstCheck.FieldValFloat!HOURS_ESTIMATED,V.uGlobal.uQty(V.Local.iUDTPos)!QTY)
+'						F.Intrinsic.Control.EndIf
+'					'WE HAVE THE PART IN THE UDT SO CHECK TO MAKE SURE WE HAVE ENOUGH
+'					F.Intrinsic.Control.Else
+'						F.Intrinsic.Control.If(V.ODBC.Con!rstCheck.FieldValFloat!HOURS_ESTIMATED,>,V.uGlobal.uQty(V.Local.sPartRet.Long)!QTY)
+'							'WE DONT HAVE ENOUGH SO GO TO THE NEXT ONE
+'							F.ODBC.Con!rstCheck.Close
+'							F.Intrinsic.Control.GoTo("NEXT")
+'						F.Intrinsic.Control.Else
+'							'WE HAVE ENOUGH SO SUBTRACT AND SET THE UDT AND KEEP GOING
+'							F.Intrinsic.Math.Sub(V.uGlobal.uQty(V.Local.sPartRet.Long)!QTY,V.ODBC.Con!rstCheck.FieldValFloat!HOURS_ESTIMATED,V.uGlobal.uQty(V.Local.sPartRet.Long)!QTY)
+'						F.Intrinsic.Control.EndIf
+'					F.Intrinsic.Control.EndIf
+'				F.Intrinsic.Control.EndIf
+'				F.ODBC.Con!rstCheck.Close
+
+'				'NOW WE CAN UPDATE THE WORK CENTERS SO THEY WILL NOT MOVE AROUND
+'				F.Intrinsic.String.Build("SELECT SAR FROM APSV3_UBDETAIL WHERE JOB = '{0}' AND SFX = '{1}' AND SEQ = '{2}' ",V.ODBC.Con!rstX.FieldValTrim!JOB,V.ODBC.Con!rstX.FieldValTrim!SUFFIX,V.ODBC.Con!rstX.FieldValLong!SEQ,V.Local.sSel)
+'				F.ODBC.Connection!Con.OpenLocalRecordsetRO("rstWC",V.Local.sSel)
+'				F.Intrinsic.Control.If(V.ODBC.Con!rstWC.EOF,=,False)
+'					'update Job Operations.Part to the WC from UBDetail
+'					F.Intrinsic.String.Build("update job_operations set PART = '{0}' where JOB = '{1}' and SUFFIX = '{2}' and SEQ = '{3}' ",V.ODBC.Con!rstWC.FieldValTrim!SAR,V.ODBC.Con!rstX.FieldValTrim!JOB,V.ODBC.Con!rstX.FieldValTrim!SUFFIX,V.ODBC.Con!rstX.FieldValTrim!SEQ,V.Local.sSel)
+'					F.ODBC.Connection!Con.Execute(V.Local.sSel)
+'					F.Intrinsic.String.Build("UPDATE APSV3_JBLINES SET SEQRES = '{0}' WHERE JOB = '{1}' AND SFX = '{2}' AND SEQ = '{3}' ",V.ODBC.Con!rstWC.FieldValTrim!SAR,V.ODBC.Con!rstX.FieldValTrim!JOB,V.ODBC.Con!rstX.FieldValTrim!SUFFIX,V.ODBC.Con!rstX.FieldValLong!SEQ,V.Local.sSel)
+'					F.ODBC.Connection!Con.Execute(V.Local.sSel)
+'				F.Intrinsic.Control.EndIf
+'				F.ODBC.Con!rstWC.Close
+
+				' write the record to a string
+				F.ODBC.Con!rstX.Record2String(V.Local.sJobData)
+				F.Intrinsic.String.Split(V.Local.sJobData,"*!*",V.Local.sHold)
+
+				' wait count for wait status
+				F.Intrinsic.Math.Add(V.Local.icount,1,V.Local.icount)
+				F.Intrinsic.Control.If(V.Local.icount,=,5)
+					F.Intrinsic.Math.Add(V.Local.iWait,1,V.Local.iWait)
+					V.Local.icount.Set(0)
+				F.Intrinsic.Control.EndIf
+				F.Intrinsic.Control.If(V.Local.iWait,=,11)
+					V.Local.iWait.Set(0)
+				F.Intrinsic.Control.EndIf
+
+				' first value needs to be job-suffix
+				F.Intrinsic.String.Replace(V.Local.sJobData,"*!*-*!*","-",V.Local.sJobData)
+				' all values should be ~ delimited
+				F.Intrinsic.String.Replace(V.Local.sJobData,"*!*","~",V.Local.sJobData)
+				' need to trim the (4) element, so split and rejoin
+				F.Intrinsic.String.Split(V.Local.sJobData,"~",V.Local.sJobSuff)
+				F.Intrinsic.String.Split(V.Local.sJobSuff(0),"-",V.Local.sJob)
+				F.Intrinsic.String.Trim(V.Local.sJobSuff(4),V.Local.sJobSuff(4))
+				F.Intrinsic.String.Join(V.Local.sJobSuff,"~",V.Local.sJobData)
+
+
+				' get job header information
+		' 		11/2/2015 -- jct --
+		'		F.Intrinsic.String.Concat("select Part, Description from Job_Header where Job = '",V.Local.sJob(0),"' and Suffix = '",V.Local.sJob(1),"' ",V.Local.sSelB)
+				' Router Rev, Description
+		'		F.Intrinsic.String.Concat("select Router, Description,Customer from Job_Header where Job = '",V.Local.sJob(0),"' and Suffix = '",V.Local.sJob(1),"' ",V.Local.sSelB)
+	'			F.Intrinsic.String.Build("select Router, Description, Customer from Job_Header where Job = '{0}' and Suffix = '{1}' ",V.Local.sJob(0),V.Local.sJob(1),V.Local.sSelB)
+				F.Intrinsic.String.Build("select Part, Description, Customer, Drawing_Customer from Job_Header where Job = '{0}' and Suffix = '{1}' ",V.Local.sJob(0),V.Local.sJob(1),V.Local.sSelB)
+				F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSelB,V.Local.sRet)
+				F.Intrinsic.String.Split(V.Local.sRet,"#!#",V.Local.sRet)
+				F.Intrinsic.String.Split(V.Local.sRet(0),"*!*",V.Local.sRet)
+				V.Local.sRet.RedimPreserve(0,3)
+		'		F.Intrinsic.String.Replace(V.Local.sJobData,"HDRPART",V.Local.sRet(0).Trim,V.Local.sJobData)
+				' Rev
+				F.Intrinsic.String.RPad(V.Local.sRet(0).Trim," ",20,V.Local.sRet(0))
+				F.Intrinsic.String.Right(V.Local.sRet(0),3,V.Local.sRev)
+				F.Intrinsic.String.Replace(V.Local.sJobData,"REV",V.Local.sRev.Trim,V.Local.sJobData)
+				' Descripiton
+				F.Intrinsic.String.Replace(V.Local.sJobData,"DESCR",V.Local.sRet(1).Trim,V.Local.sJobData)
+				' Customer
+				F.Intrinsic.String.Replace(V.Local.sJobData,"CUST",V.Local.sRet(2).Trim,V.Local.sJobData)
+				' DXF File
+	'			F.Intrinsic.String.Build("select Drawing_Customer from v_Router_Header where Router = '{0}' ",V.Local.sRet(0).Trim,V.Local.sSel)
+	'			F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSel,V.Local.sRet)
+				F.Intrinsic.String.Replace(V.Local.sJobData,"DXF",V.Local.sRet(3).Trim,V.Local.sJobData)
+				' Raw Material Part
+		'		F.Intrinsic.String.Concat("select PART from JOB_OPERATIONS where LMO='M' and JOB='",V.Local.sJob(0),"' and SUFFIX='",V.Local.sJob(1),"' and SEQ<'",V.ODBC.Con!rstX.FieldVal!SEQ,"' and PART<>'' order by SEQ desc",V.Local.sSelB)
+				F.Intrinsic.String.Build("select Part, Units from Job_Operations where LMO = 'M' and Job = '{0}' and Suffix = '{1}' and Seq < '{2}' and Part <> '' order by Seq desc",V.Local.sJob(0),V.Local.sJob(1),V.ODBC.Con!rstX.FieldVal!SEQ,V.Local.sSelB)
+				F.ODBC.Connection!Con.OpenRecordsetRO("rstB",V.Local.sSelB)
+					F.Intrinsic.Control.If(V.ODBC.Con!rstB.EOF,=,False)
+						V.Local.sMat.Set(V.ODBC.Con!rstB.FieldValTrim!PART)
+					F.Intrinsic.Control.Else
+						V.Local.sMat.Set("")
+					F.Intrinsic.Control.EndIf
+				
+				F.Intrinsic.String.Replace(V.Local.sJobData,"NCELLMAT",V.Local.sMat,V.Local.sJobData)
+
+				V.Local.sAddtlSeq.Set("")
+				V.Local.lFor.Set(0)
+
+		'		F.Intrinsic.String.Concat("select Customer from Job_Header where JOB='",V.Local.sJob(0),"' and SUFFIX='",V.Local.sJob(1),"' ",V.Local.sSelB)
+		'		F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSelB,V.Local.sRet)
+		'		F.Intrinsic.String.Split(V.Local.sRet,"#!#",V.Local.sRet)
+		'		F.Intrinsic.String.Split(V.Local.sRet(0),"*!*",V.Local.sRet)
+		'		V.Local.sCustomer.set(V.Local.sRet(0).Trim)
+
+				F.Intrinsic.String.Concat("select Operation from Job_Operations where JOB='",V.Local.sJob(0),"' and SUFFIX='",V.Local.sJob(1),"' and LMO='O'  and Seq >'",V.ODBC.Con!rstX.FieldVal!SEQ,"' and Seq < '995000' order by Seq",V.Local.sSelB)
+				F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSelB,V.Local.sRet)
+				F.Intrinsic.String.Split(V.Local.sRet,"#!#",V.Local.sRet)
+				F.Intrinsic.String.Split(V.Local.sRet(0),"*!*",V.Local.sRet)
+				V.Local.sOP.set(V.Local.sRet(0).Trim)
+				F.Intrinsic.String.Replace(V.Local.sJobData,"OP",V.Local.sOP.Trim,V.Local.sJobData)
+				V.Local.sRet.Redim(0,0)
+			F.Intrinsic.Debug.Stop
+
+				'ADD IN NOTES AND APPEND TO END OF JOBDATA WITH ~
+				F.Intrinsic.String.Build("SELECT DESCRIPTION FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND LMO = 'C' AND SEQ > '{2}' AND SEQ < ISNULL((SELECT TOP 1 SEQ FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQ > '{2}' AND SEQ < '995000' AND LMO = 'L'),'995000') ORDER BY SEQ ASC ",V.Local.sJob(0).Trim,V.Local.sJob(1).Trim,V.ODBC.Con!rstX.FieldValTrim!SEQ,V.Local.sSelB)
+	'			F.ODBC.Connection!Con.OpenLocalRecordsetRO("rstNote",V.Local.sSelB)
+				F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSelB,V.Local.sRet)
+				F.Intrinsic.String.Replace(V.Local.sRet,"*!*","",V.Local.sRet)
+				F.Intrinsic.String.Replace(V.Local.sRet,"#$#","",V.Local.sRet)
+				F.Intrinsic.Control.If(V.Local.sRet.Length,>,60)
+					F.Intrinsic.String.Build("{0}~{1} -SEE WO~~",V.Local.sJobData,V.Local.sRet.Left60,V.Local.sJobData)
+				F.Intrinsic.Control.Else
+					F.Intrinsic.String.Build("{0}~{1}~~",V.Local.sJobData,V.Local.sRet.Left60,V.Local.sJobData)
+				F.Intrinsic.Control.EndIf
+				V.Local.sRet.Set("")
+
+	'			F.Intrinsic.Control.If(V.ODBC.Con!rstNote.EOF,=,False)
+	'				F.Intrinsic.String.Build("{0}~{1}",V.Local.sJobData,V.ODBC.Con!rstNote.FieldValTrim!DESCRIPTION,V.Local.sJobData)
+	'			F.Intrinsic.Control.EndIf
+	'			F.ODBC.Con!rstNote.Close
+
+		'		F.Intrinsic.String.Concat(V.Local.sMat,"~",V.Local.sSO,V.Local.sMat)
+		'		F.Intrinsic.String.Replace(V.Local.sJobData,"NCELLMAT",V.Local.sMat,V.Local.sJobData)
+	'3/11/16 - sas -- per Russ, he only wants jobs that have available parts
+	'			F.Intrinsic.String.Build("SELECT QTY_ONHAND FROM V_INVENTORY_MSTR WHERE PART = '{0}' AND QTY_ONHAND >= '{1}' ",V.Local.sMat.PSQLFriendly,V.ODBC.Con!rstB.FieldValTrim!UNITS,V.Local.sSel)
+	'			F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst",V.Local.sSel)
+	'			F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+	'				F.Intrinsic.Control.If(V.ODBC.Con!rst.FieldValFloat!QTY_ONHAND,<>,0)
+						F.Intrinsic.String.Build("{0}{1}{2}",V.Local.sFileData,V.Local.sJobData,V.Ambient.NewLine,V.Local.sFileData)
+	'				F.Intrinsic.Control.EndIf
+	'			F.Intrinsic.Control.EndIf
+	'			F.ODBC.Con!rst.Close
+				F.ODBC.Con!rstB.Close
+
+				F.Intrinsic.Control.Label("NEXT")
+'			F.Intrinsic.Control.EndIf
+'		F.Intrinsic.Control.EndIf
+'		F.ODBC.Con!rstHold.Close
+
+'	F.ODBC.Con!rstX.MoveNext
+'	F.Intrinsic.Control.Loop
+	F.Intrinsic.Control.EndIf
+	F.ODBC.Con!rstX.Close
+	F.ODBC.Con!rstLoad.MoveNext
+F.Intrinsic.Control.Loop
+F.ODBC.Con!rstLoad.Close
+F.Intrinsic.UI.CloseWaitDialog
+
+'1/6/15 SFF: Removed the timestamp suffix from end of file, they wanted the file to just be replaced every time, so there is always just one file to process.
+V.Local.sTmpFIle.Set("GSS-To_Ncell.txt")
+f.Intrinsic.File.MakeFilenameFriendly(v.Local.sTmpFIle,v.Local.sTmpFIle)
+F.Intrinsic.String.Build("{0}\{1}",V.Global.sFILELOC,V.Local.sTmpFIle,V.Local.sTmpFIle)
+F.Intrinsic.File.String2File(V.Local.sTmpFIle,V.Local.sFileData)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("writeFile_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_TO_NCELL-JONES.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.writeFile.End
+
+Program.Sub.unload.Start
+
+F.ODBC.Connection!Con.Close
+F.Intrinsic.Control.End
+
+Program.Sub.unload.End
+
+Program.Sub.getValidWCs.Start
+F.Intrinsic.Control.SetErrorHandler("getValidWCs_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.sSel.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sHold.Declare(String)
+
+'F.Intrinsic.String.Build("select Machine from v_Workcenters where Nesting_Intrfc = 'Y' ",V.Local.sInString,V.Local.sSel)
+'F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSel,V.Local.sRet)
+'F.Intrinsic.String.Replace(V.Local.sRet,"*!*","",V.Local.sRet)
+'F.Intrinsic.String.Replace(V.Local.sRet,"#$#","','",V.Local.sRet)
+'F.Intrinsic.Variable.AddRV("WC",V.Local.sRet)
+
+
+' get list of Nesting workcenters
+F.ODBC.Connection!Con.ExecuteAndReturn("select Machine from Workcenters where Nesting_Intrfc = 'Y' and  Machine in ('LS03','LS04') ",V.Local.sRet)
+'do all lasor work centers
+'F.ODBC.Connection!Con.ExecuteAndReturn("select Machine from Workcenters where Nesting_Intrfc = 'Y' and  Machine in ('LS03','LS04','LS01','LS02','LS05') ",V.Local.sRet)
+'ChangedperJonesmetaltohardcodeWCstopullin,theywouldbemaintainingwithGABlicenseifneededchangingperJustinWerth
+'F.ODBC.Connection!Con.ExecuteAndReturn("select Machine from Workcenters where MACHINE in ('LS03','LS04') ",V.Local.sRet)
+' ifnothingisfound,exit
+F.Intrinsic.Control.If(V.Local.sRet.Trim,=,"")
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndIf
+'	 formatthedeilimitedreturn,touseinthenextquery
+	F.Intrinsic.String.Replace(V.Local.sRet,"*!*","",V.Local.sRet)
+	F.Intrinsic.String.Replace(V.Local.sRet,"#$#","','",V.Local.sRet)
+	V.Local.sHold.Set(V.Local.sRet)
+
+	' look for the work groups, those wc belong to
+'	V.Local.sSel.Set("select Machine from v_Workcenters where Workcenter in ('LS03','LS04') ")
+'	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSel,V.Local.sRet)
+'	F.Intrinsic.Control.If(V.Local.sRet.Trim,<>,"")
+'		F.Intrinsic.String.Replace(V.Local.sRet,"*!*","",V.Local.sRet)
+'		F.Intrinsic.String.Replace(V.Local.sRet,"#$#","','",V.Local.sRet)
+'		F.Intrinsic.String.Concat(V.Local.sHold,"','",V.Local.sRet,V.Local.sHold)
+'	F.Intrinsic.Control.EndIf
+'	
+'	' get list of flagged workgroups
+'	F.ODBC.Connection!Con.ExecuteAndReturn("select Work_Group from v_Workgroup_Head where Nesting = '1'",V.Local.sRet)
+'	F.Intrinsic.Control.If(V.Local.sRet.Trim,<>,"")
+'		F.Intrinsic.String.Replace(V.Local.sRet,"*!*","",V.Local.sRet)
+'		F.Intrinsic.String.Replace(V.Local.sRet,"#$#","','",V.Local.sRet)
+'		F.Intrinsic.String.Concat(V.Local.sHold,"','",V.Local.sRet,V.Local.sHold)
+'	F.Intrinsic.Control.EndIf
+
+'F.Intrinsic.Control.EndIf
+F.Intrinsic.Variable.AddRV("WC",V.Local.sHold)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("getValidWCs_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_TO_NCELL-JONES.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.getValidWCs.End
+
+program.sub.cmdgo_click.start
+F.Intrinsic.Control.SetErrorHandler("cmdgo_click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+Gui.SS_Form1..Visible(false)
+
+' find valid Workcenters
+F.Intrinsic.UI.InvokeWaitDialog("Getting Valid Work Centers","GSS To Ncell File")
+F.Intrinsic.Control.CallSub(Getvalidwcs)
+
+' Write the output file
+F.Intrinsic.UI.ChangeWaitStatus("Writing Export File")
+F.Intrinsic.Control.CallSub(Writefile,"WC",V.Args.WC)
+'F.Intrinsic.Control.CallSub(Writefile)
+
+' that's all
+F.Intrinsic.UI.CloseWaitDialog
+F.Intrinsic.Control.CallSub(Unload)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdgo_click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_TO_NCELL-JONES.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+Function.Intrinsic.Control.EndIf
+
+
+program.sub.cmdgo_click.end
+
+Program.Sub.Comments.Start
+${$0$}$GCG_GSS_TO_NCELL-JONES$}$JCT$}$9/21/2015
+${$3$}$0$}$$}$-1$}$-1$}$$}$1/1/1900$}$developed for Jones Metal
+send open workorder requirments to Ncell for WC LS03, 04.
+
+Changes requested by Jones Metal completed by SFF 12/14/2015:
+This portion of the interface works correctly but needs to only export work orders that have the following work centers in JOB_OPERATIONS_WC.WORKCENTER:
+"	LS03
+"	LS04
+There is a misspelling of "License" on the wait dialog.
+
+${$4$}$0$}$$}$0$}$-1$}$SILAS FULSOm$}$12/14/2015 2:56:12 PM$}$Changes requested and completed by Silas Fulsom
+
+This portion of the interface works correctly but needs to only export work orders that have the following work centers in JOB_OPERATIONS_WC.WORKCENTER:
+"	LS03
+"	LS04
+There is a misspelling of "License" on the wait dialog.
+
+Program.Sub.Comments.End
+Program.Sub.ScreenSS.Start
+SS_Form1{{CAPTION::Ncell Cutoff Date
+SS_Form1.CTRL{{NAME::dtpCutoff\\TYPE::6\\CAPTION::Cutoff Date\\TABSTOP::1\\GROUP::-1\\BROWSER::0\\SIZE::1
+SS_Form1.CTRL{{NAME::cmdGo\\TYPE::5\\CAPTION::Go\\TABSTOP::2\\GROUP::-1\\BROWSER::0\\SIZE::1
+
+Program.Sub.ScreenSS.End
+
