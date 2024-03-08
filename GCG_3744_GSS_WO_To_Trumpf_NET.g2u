@@ -1,0 +1,880 @@
+Program.Sub.ScreenSU.Start
+gui.SS_Form1..create
+gui.SS_Form1..caption("Trumpf Cutoff Date")
+gui.SS_Form1..size(2475,1740)
+gui.SS_Form1..minx(0)
+gui.SS_Form1..miny(0)
+gui.SS_Form1..position(0,0)
+gui.SS_Form1..event(unload,unload)
+gui.SS_Form1..alwaysontop(False)
+gui.SS_Form1..fontname("Arial")
+gui.SS_Form1..fontsize(8)
+gui.SS_Form1..forecolor(0)
+gui.SS_Form1..fontstyle(,,,,)
+gui.SS_Form1..BackColor(-2147483633)
+gui.SS_Form1..controlbox(True)
+gui.SS_Form1..maxbutton(False)
+gui.SS_Form1..minbutton(False)
+gui.SS_Form1..mousepointer(0)
+gui.SS_Form1..moveable(True)
+gui.SS_Form1..sizeable(False)
+gui.SS_Form1..ShowInTaskBar(True)
+gui.SS_Form1..titlebar(True)
+gui.SS_Form1.lbl_dtpCutoff.create(label,"Cutoff Date",True,1800,200,1,100,135,True,0,Arial,8,-2147483633,0)
+gui.SS_Form1.lbl_dtpCutoff.defaultvalue("")
+gui.SS_Form1.lbl_dtpCutoff.controlgroup(0)
+gui.SS_Form1.dtpCutoff.create(datepicker)
+gui.SS_Form1.dtpCutoff.visible(True)
+gui.SS_Form1.dtpCutoff.size(1800,345)
+gui.SS_Form1.dtpCutoff.zorder(0)
+gui.SS_Form1.dtpCutoff.position(100,335)
+gui.SS_Form1.dtpCutoff.enabled(True)
+gui.SS_Form1.dtpCutoff.checkbox(False)
+gui.SS_Form1.dtpCutoff.defaultvalue("")
+gui.SS_Form1.dtpCutoff.controlgroup(0)
+gui.SS_Form1.cmdGo.create(button)
+gui.SS_Form1.cmdGo.caption("Go")
+gui.SS_Form1.cmdGo.visible(True)
+gui.SS_Form1.cmdGo.size(1000,360)
+gui.SS_Form1.cmdGo.zorder(0)
+gui.SS_Form1.cmdGo.position(100,765)
+gui.SS_Form1.cmdGo.enabled(True)
+gui.SS_Form1.cmdGo.fontname("Arial")
+gui.SS_Form1.cmdGo.fontsize(8)
+gui.SS_Form1.cmdGo.event(click,cmdgo_click)
+gui.SS_Form1.cmdGo.defaultvalue("")
+gui.SS_Form1.cmdGo.controlgroup(0)
+gui.SS_Form1.dtpCutoff.tabstop(true)
+gui.SS_Form1.dtpCutoff.tabindex(1)
+gui.SS_Form1.cmdGo.tabstop(true)
+gui.SS_Form1.cmdGo.tabindex(2)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Variable.UDT.JobData.Define("Job",String,Job)
+Variable.UDT.JobData.Define("Suffix",String,Suffix)
+Variable.UDT.JobData.Define("Seq",String,Seq)
+Variable.UDT.JobData.Define("Date_Due",String,Date_Due)
+Variable.UDT.JobData.Define("Part",String,Part)
+Variable.uGlobal.uJobData.Declare("JobData")
+
+Variable.UDT.uQty.Define("PART",String)
+Variable.UDT.uQty.Define("QTY",Float)
+
+Variable.uGlobal.uQty.Declare("uQty")
+Variable.Global.sSAVEPATH.Declare(String)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.iFor.Declare(Long)
+V.Local.dDate.Declare(Date)
+F.ODBC.Connection!Con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+'f.Intrinsic.Debug.EnableLogging
+F.Intrinsic.Control.CallSub(Licenseverification)
+F.Intrinsic.Control.CallSub(Filepath)
+V.Global.sSAVEPATH.Set(V.Args.SAVEPATH)
+
+f.Intrinsic.UI.InvokeWaitDialog("Writing Export File.")
+F.Intrinsic.Control.CallSub(Findinterfaceseq)
+F.Intrinsic.Control.CallSub(Createxml_new)
+f.Intrinsic.UI.CloseWaitDialog
+F.Intrinsic.Control.CallSub(Unload)
+
+'3/11/16 -sas- Per Russ he wants a cutoff date for what will be pulled into Trumpf as well as making sure they have the Quantity on hand.
+'F.Intrinsic.Date.DateAdd("D",10,V.Ambient.Date,V.Local.dDate)
+'Gui.SS_Form1.dtpCutoff.Value(V.Local.dDate)
+'Gui.SS_Form1..Show
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_WO_To_Trumpf_NET.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub(unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Main.End
+
+Program.Sub.findInterfaceSeq.Start
+F.Intrinsic.Control.SetErrorHandler("findInterfaceSeq_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.sSel.Declare(String)
+V.Local.sSelB.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sHold.Declare(String)
+V.Local.iFor.Declare(Long)
+V.Local.dDate.Declare(Date)
+v.Local.fHold.Declare(float)
+V.Local.iPos.Declare(LONG)
+
+'' get list of Nesting workcenters
+'F.ODBC.Connection!Con.ExecuteAndReturn("select Machine from Workcenters where Nesting_Intrfc = 'Y' and MACHINE in ('LS01','LS02','LS05')",V.Local.sRet)
+''Changed to pull in only certain workcenters per Jones Metal LS01,02,and 05 - SFF 12/14/2015
+''F.ODBC.Connection!Con.ExecuteAndReturn("select Machine from Workcenters where MACHINE in ('LS01','LS02','LS05') and  ",V.Local.sRet)
+''
+'' if nothing is found, exit
+'F.Intrinsic.Control.If(V.Local.sRet.Trim,=,"")
+'	F.Intrinsic.Control.CallSub(Unload)
+'F.Intrinsic.Control.EndIf
+''
+'' format the deilimited return, to use in the next query
+'F.Intrinsic.String.Replace(V.Local.sRet,"*!*","",V.Local.sRet)
+'F.Intrinsic.String.Replace(V.Local.sRet,"#$#","','",V.Local.sRet)
+'V.Local.sHold.Set(V.Local.sRet)
+''
+''first update Job Operations.Part to the WC from UBDetail, this will prevent further scheduling from changing to a different WC.
+'F.Intrinsic.String.Build("Select * from APSV3_UBDetail where SAR in ('{0}') ",V.Local.sRet,V.Local.sSel)
+'F.ODBC.Connection!Con.OpenRecordsetRO("rstUB",V.Local.sSel)
+''F.Intrinsic.Control.If(V.ODBC.Con!rstUB.EOF,<>,True)
+'	F.Intrinsic.Control.DoUntil(V.ODBC.Con!rstUB.EOF,=,True)
+'		F.Intrinsic.String.LPad(V.ODBC.Con!rstUB.FieldValTrim!SEQ,"0",6,V.Local.sSelB)
+'		F.Intrinsic.String.Build("update job_operations set PART = '{0}' where JOB = '{1}' and SUFFIX = '{2}' and SEQ = '{3}' ",V.ODBC.Con!rstUB.FieldValTrim!SAR,V.ODBC.Con!rstUB.FieldValTrim!JOB,V.ODBC.Con!rstUB.FieldValTrim!SFX,V.Local.sSelB,V.Local.sSel)
+'		F.ODBC.Connection!Con.Execute(V.Local.sSel)
+'		F.ODBC.Con!rstUB.MoveNext
+'	F.Intrinsic.Control.Loop
+'F.ODBC.Con!rstUB.Close
+''Commented this portion out, will be updating job_ops instead to the scheduled WC, so future scheduling will not change it
+'' look for the work groups, those wc belong to
+''F.Intrinsic.String.Build("select distinct Workgroup from v_Workgroup_Line where Workcenter in ('{0}') ",V.Local.sRet,V.Local.sSel)
+''F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSel,V.Local.sRet)
+''F.Intrinsic.String.Replace(V.Local.sRet,"*!*","",V.Local.sRet)
+''F.Intrinsic.String.Replace(V.Local.sRet,"#$#","','",V.Local.sRet)
+''F.Intrinsic.String.Concat(V.Local.sHold,"','",V.Local.sRet,V.Local.sHold)
+'' look for labor sequences that will go to a nesting interface flagged wc, or the workgroups they belong to
+'V.uGlobal.uJobData.Redim(-1,-1)
+''3/11/16 sas - per Russ he wants to only add jobs that date due is less than or equal to cutoff date and quantity on hand is enough to cover the the job, in different statement
+'V.Local.dDate.Set(V.Screen.SS_Form1!dtpCutoff.Value)
+'F.Intrinsic.String.Build("select Job, Suffix, Seq, Date_Due, Part from v_Job_Operations where LMO = 'L' and Part in ('{0}') and FLAG_CLOSED <> 'Y' and Date_Due <= '{1}' ORDER BY DATE_DUE ASC",V.Local.sHold,V.Local.dDate.PervasiveDate,V.Local.sSel)
+'F.ODBC.Connection!Con.OpenRecordsetRO("rstSel",V.Local.sSel)
+'	F.Intrinsic.Variable.LoadUDTFromRecordset("con","rstSel","v.uGlobal.uJobData",False,10000)
+'F.ODBC.Con!rstSel.Close
+'
+'' if no elements are loaded, unload
+'F.Intrinsic.Control.If(V.uGlobal.uJobData!Job.UBound,<,0)
+'	F.Intrinsic.Control.CallSub(Unload)
+'F.Intrinsic.Control.EndIf
+'
+'F.Intrinsic.Variable.UDTFlagAll(V.uGlobal.uJobData)
+'
+''6/16/16 we are going to get all jobs that are not closed that are before the cutoff date set and loop through the udt and unflag all of the ones that we find and then delete the ones that are closed
+'F.ODBC.Connection!Con.OpenLocalRecordsetRO("rstCheck","SELECT JOB, SUFFIX FROM V_JOB_HEADER WHERE DATE_CLOSED = '1900-01-01' ")
+'F.Intrinsic.Control.DoUntil(V.ODBC.Con!rstCheck.EOF,=,TRUE)
+'	'we are going to loop through the table and unflag all job suffix matches in the udt
+'	F.Intrinsic.Variable.UDTMultiUnFlag(V.uGlobal.uJobData!Job,V.ODBC.Con!rstCheck.FieldValTrim!JOB,V.uGlobal.uJobData!Suffix,V.ODBC.Con!rstCheck.FieldValTrim!SUFFIX)
+'	F.ODBC.Con!rstCheck.MoveNext
+'F.Intrinsic.Control.Loop
+'F.ODBC.Con!rstCheck.Close
+'
+''We can now delete all flagged rows
+'F.Intrinsic.Variable.UDTDeleteFlagged(V.uGlobal.uJobData)
+'
+'' sort all of the records.  The raw material seq will be the M immediately prceding the L going to the machine
+''F.Intrinsic.Variable.UDTMultiQuickSort(V.uGlobal.uJobData!Job,False,V.uGlobal.uJobData!Suffix,False,V.uGlobal.uJobData!Seq,False)
+'
+'V.Local.iFor.Set(0)
+''first update Job Operations.Part to the WC from UBDetail, this will prevent further scheduling from changing to a different WC.
+'F.Intrinsic.String.Build("Select * from APSV3_UBDetail where SAR in ('{0}') ",V.Local.sHold,V.Local.sSel)
+'F.ODBC.Connection!Con.OpenRecordsetRO("rstUB",V.Local.sSel)
+''F.Intrinsic.Control.If(V.ODBC.Con!rstUB.EOF,<>,True)
+'	F.Intrinsic.Control.DoUntil(V.ODBC.Con!rstUB.EOF,=,True)
+'			F.Intrinsic.String.LPad(V.ODBC.Con!rstUB.FieldValTrim!SEQ,"0",6,V.Local.sSelB)
+'			F.Intrinsic.Variable.UDTMultiSeekSet(V.uGlobal.uJobData!Job,V.ODBC.Con!rstUB.FieldValTrim!JOB,V.uGlobal.uJobData!Suffix,V.ODBC.Con!rstUB.FieldValTrim!SFX,V.uGlobal.uJobData!Seq,V.Local.sSelB,V.uGlobal.uJobData!Part,V.ODBC.Con!rstUB.FieldValTrim!SAR)
+''			F.Intrinsic.String.Build("update job_operations set PART = '{0}' where JOB = '{1}' and SUFFIX = '{2}' and SEQ = '{3}' ",V.ODBC.Con!rstUB.FieldValTrim!SAR,V.ODBC.Con!rstUB.FieldValTrim!JOB,V.ODBC.Con!rstUB.FieldValTrim!SFX,V.Local.sSelB,V.Local.sSel)
+''			F.ODBC.Connection!Con.Execute(V.Local.sSel)
+''			F.Intrinsic.String.Build("UPDATE APSV3_JBLINES SET SEQRES = '{0}' WHERE JOB = '{1}' AND SFX = '{2}' AND SEQ = '{3}' ",V.ODBC.Con!rstUB.FieldValTrim!SAR,V.ODBC.Con!rstUB.FieldValTrim!JOB,V.ODBC.Con!rstUB.FieldValTrim!SFX,V.ODBC.Con!rstUB.FieldValTrim!SEQ,V.Local.sSel)
+''			F.ODBC.Connection!Con.Execute(V.Local.sSel)
+'			F.Intrinsic.String.Build("select Part, HOURS_ESTIMATED from Job_Operations where LMO = 'M' and Job = '{0}' and Suffix = '{1}' and seq < '{2}' order by Seq desc",V.uGlobal.uJobData(V.Local.iFor)!Job.Trim,V.uGlobal.uJobData(V.Local.iFor)!Suffix.Trim,V.uGlobal.uJobData(V.Local.iFor)!Seq.Trim,V.Local.sSel)
+'			F.ODBC.Connection!Con.OpenLocalRecordsetRO("rstPart",v.Local.sSel)
+'			f.Intrinsic.Control.If(v.ODBC.Con!rstPart.EOF,=,False)
+'				f.Intrinsic.Variable.UDTMultiSeek(v.uGlobal.uQty!PART.Trim,v.ODBC.Con!rstPart.FieldValTrim!PART,V.Local.sRet)
+'				f.Intrinsic.Control.If(v.Local.sRet,<>,"")
+'					'we have a part in the Udt already so subtract from it
+'					f.Intrinsic.Math.Sub(v.uGlobal.uQty(v.Local.sRet.Long)!QTY,v.ODBC.Con!rstPart.FieldValFloat!HOURS_ESTIMATED,V.Local.fHold)
+'					F.Intrinsic.Control.If(V.Local.fHold,>=,0)
+'						'IF OUR ON HAND IS GREATER THAN OR EQUAL TO ZERO THEN WE ARE GOOD
+'						V.uGlobal.uQty(V.Local.sRet.Long)!QTY.Set(V.Local.fHold)
+'					F.Intrinsic.Control.Else
+'						'WE HAVE LESS THAN WE NEED SO FLAG THE UDT
+'						F.Intrinsic.Variable.UDTFlagOrdinal(V.uGlobal.uJobData,TRUE,V.Local.iFor)
+'					F.Intrinsic.Control.EndIf
+'				F.Intrinsic.Control.Else
+'					'WE DONT HAVE A PART IN THE UDT SO LETS ADD IT
+'					F.Intrinsic.Control.If(V.uGlobal.uQty.UBound,=,-1)
+'						V.uGlobal.uQty.Redim(0,0)
+'						V.Local.iPos.Set(0)
+'					F.Intrinsic.Control.Else
+'						F.Intrinsic.Math.Add(V.uGlobal.uQty.UBound,1,V.Local.iPos)
+'						V.uGlobal.uQty.RedimPreserve(0,V.Local.iPos)
+'					F.Intrinsic.Control.EndIf
+'					F.Intrinsic.String.Build("SELECT QTY_ONHAND FROM V_INVENTORY_MSTR WHERE PART = '{0}' ",V.ODBC.Con!rstPart.FieldValTrim!PART,V.Local.sSel)
+'					F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSel,V.Local.sRet)
+'					F.Intrinsic.String.Replace(V.Local.sRet,"*!*","",V.Local.sRet)
+'					V.uGlobal.uQty(V.Local.iPos)!PART.Set(V.ODBC.Con!rstPart.FieldValTrim!PART)
+'					V.uGlobal.uQty(V.Local.iPos)!QTY.Set(V.Local.sRet.Float)
+'					
+'					'NOW THAT WE HAVE THE QTY WE CAN LOOK AT THE AMOUNT
+'					F.Intrinsic.Math.Sub(V.uGlobal.uQty(V.Local.iPos)!QTY,V.ODBC.Con!rstPart.FieldValFloat!HOURS_ESTIMATED,V.Local.fHold)
+'					F.Intrinsic.Control.If(V.Local.fHold,>=,0)
+'						'IF OUR ON HAND IS GREATER THAN OUR EQUAL TO ZERO THEN WE ARE GOOD
+'						V.uGlobal.uQty(V.Local.iPos)!QTY.Set(V.Local.fHold)
+'					F.Intrinsic.Control.Else
+'						'WE HAVE LESS THAN WE NEED SO FLAG THE UDT
+'						F.Intrinsic.Variable.UDTFlagOrdinal(V.uGlobal.uJobData,TRUE,V.Local.iFor)
+'					F.Intrinsic.Control.EndIf
+'				F.Intrinsic.Control.EndIf
+'				
+'			f.Intrinsic.Control.EndIf
+'			F.ODBC.Con!rstPart.Close
+'		F.Intrinsic.Math.Add(V.Local.iFor,1,V.Local.iFor)
+'		F.ODBC.Con!rstUB.MoveNext
+'	F.Intrinsic.Control.Loop
+''F.Intrinsic.Control.EndIf
+'F.ODBC.Con!rstUB.Close
+'
+''DELETE THE FLAGGED 
+'F.Intrinsic.Variable.UDTDeleteFlagged(V.uGlobal.uJobData)
+'
+'F.Intrinsic.Control.For(V.Local.iFor,V.uGlobal.uJobData.LBound,V.uGlobal.uJobData.UBound,1)
+'	F.Intrinsic.String.Build("update job_operations set PART = '{0}' where JOB = '{1}' and SUFFIX = '{2}' and SEQ = '{3}' ",V.uGlobal.uJobData(V.Local.iFor)!Part.Trim,V.uGlobal.uJobData(V.Local.iFor)!Job.Trim,V.uGlobal.uJobData(V.Local.iFor)!Suffix.Trim,V.uGlobal.uJobData(V.Local.iFor)!Seq.Trim,V.Local.sSel)
+'	F.ODBC.Connection!Con.Execute(V.Local.sSel)
+'	F.Intrinsic.String.Build("UPDATE APSV3_JBLINES SET SEQRES = '{0}' WHERE JOB = '{1}' AND SFX = '{2}' AND SEQ = '{3}' ",V.uGlobal.uJobData(V.Local.iFor)!Part.Trim,V.uGlobal.uJobData(V.Local.iFor)!Job.Trim,V.uGlobal.uJobData(V.Local.iFor)!Suffix.Trim,V.uGlobal.uJobData(V.Local.iFor)!Seq.Long,V.Local.sSel)
+'	F.ODBC.Connection!Con.Execute(V.Local.sSel)
+'F.Intrinsic.Control.Next(V.Local.iFor)
+
+f.ODBC.Connection!Con.OpenLocalRecordsetRO("rstLoad","SELECT * FROM GCG_3744_NCELL_TRUMP WHERE PART IN ('LS01','LS02','LS05') ")
+F.Intrinsic.Variable.LoadUDTFromRecordset("Con","rstLoad","v.uGlobal.uJobData",False)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("findInterfaceSeq_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_WO_To_Trumpf_NET.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub(unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.findInterfaceSeq.End
+
+Program.Sub.createXML_New.Start
+F.Intrinsic.Control.SetErrorHandler("createXML_New_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.sSel.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sCustRet.Declare(String)
+V.Local.iFor.Declare(Long)
+V.Local.sFileName.Declare(String)
+V.Local.sHold.Declare(String)
+V.Local.sLaborSeqRet.Declare(String)
+V.Local.sJob.Declare(String)
+V.Local.sSuffix.Declare(String)
+V.Local.iForWO.Declare(Long)
+V.Local.sWO.Declare(String)
+V.Local.sWOHold.Declare(String)
+V.Local.bExists.Declare(Boolean)
+V.Local.iHold.Declare(Long)
+V.Local.sPathHOld.Declare(String)
+V.Local.sImportFilter.Declare(String)
+V.Local.sJobRet.Declare(String)
+V.Local.sMatRet.Declare(String)
+V.Local.sLabRet.Declare(String)
+V.Local.sVal.Declare(String)
+V.Local.sCADFileName.Declare(String)
+V.Local.sCADRet.Declare(String)
+V.Local.sFileCad.Declare(String)
+V.Local.sRev.Declare(String)
+V.Local.sDueDate.Declare(String)
+V.Local.sDesc.Declare(String)
+V.Local.sComment.Declare(String)
+V.Local.sGMT.Declare(String)
+v.Local.sComments.Declare(string)
+
+' make sure writepath is found	
+'F.Intrinsic.File.Exists(V.Global.sSAVEPATH,V.Local.bExists)
+'F.Intrinsic.Control.If(V.Local.bExists,=,False)
+'	F.Intrinsic.String.Split(V.Global.sSAVEPATH,"\",V.Local.sHold)
+'	F.Intrinsic.Math.Sub(V.Local.sHold.UBound,1,V.Local.iHold)
+'	F.Intrinsic.Control.For(V.Local.iFor,0,V.Local.iHold,1)
+'		F.Intrinsic.Control.SelectCase(V.Local.iFor)
+'		F.Intrinsic.Control.Case(0)
+'			V.Local.sPathHold.Set(V.Local.sHold(v.Local.iFor))
+'		F.Intrinsic.Control.CaseElse
+'			F.Intrinsic.String.Build("{0}\{1}",V.Local.sPathHold,V.Local.sHold(v.Local.iFor),V.Local.sPathHold)
+'		F.Intrinsic.Control.EndSelect
+'	F.Intrinsic.Control.Next(V.Local.iFor)
+'	F.Intrinsic.File.Exists(V.Local.sPathHold,V.Local.bExists)
+'	F.Intrinsic.Control.If(V.Local.bExists,=,False)
+'		F.Intrinsic.Control.CallSub(Unload)
+'	F.Intrinsic.Control.EndIf
+'F.Intrinsic.Control.EndIf
+
+' create the document
+F.global.xml.createDocument("xmlDoc",False,True,False,False)
+'Dropped Y from Root per Jones Metal.
+F.global.xml.SetRoot("xmlDoc","PPSImport")
+''F.global.xml.SetRoot("xmlDoc","PPSYimport")
+
+F.Global.XML.CreateAttributeNode("xmlDoc","Version","1.1")
+F.Global.XML.SetAttributeToRoot("xmlDoc","Version")
+
+' set new line text
+F.Intrinsic.String.Concat(V.Ambient.NewLine,V.Ambient.Tab,V.Local.shold)
+'Dropped Y from Root per Jones Metal.
+F.global.xml.appendNode("xmlDoc","PPSImport",V.Local.shold)
+'F.global.xml.appendNode("xmlDoc","PPSYimport",V.Local.shold)
+F.Global.XML.CreateElementNode("xmlDoc","ProductionOrders","")
+F.Global.XML.AppendNodeToRoot("xmlDoc","ProductionOrders")
+F.global.xml.appendNode("xmlDoc","ProductionOrders",V.Local.shold)
+' get distinct Job*!*Suffix
+f.Intrinsic.Variable.UDTToString(v.uGlobal.uJobData,"Job*!*Suffix*!*Seq*!*Date_Due*!*Part",v.Ambient.NewLine,"*!*",v.Local.sWO)
+F.Intrinsic.Debug.SetLA(V.Local.sWO)
+F.Intrinsic.String.Split(V.Local.sWO,V.Ambient.NewLine,V.Local.sWO)
+' build ProductionOrder node, for each job-suffix
+F.Intrinsic.Control.For(V.Local.iForWO,V.Local.sWO.LBound,V.Local.sWO.UBound,1)
+
+	F.Intrinsic.String.Split(V.Local.sWO(v.Local.iForWO),"*!*",V.Local.sWOHold)
+	V.Local.sWOHold.RedimPreserve(0,4)
+	V.Local.sJob.Set(V.Local.sWOHold(0).Trim)
+	V.Local.sSuffix.Set(V.Local.sWOHold(1).Trim)
+	V.Local.sLaborSeqRet.Set(V.Local.sWOHold(2).Trim)
+	F.Intrinsic.Control.If(V.Local.sSuffix.Trim,<>,"")
+		F.Intrinsic.String.Build("{0}-{1}-{2}",V.Local.sJob,V.Local.sSuffix,V.Local.sLaborSeqRet,V.Local.sWO)
+	F.Intrinsic.Control.Else
+'		V.Local.sWO.Set(V.Local.sJob)
+		F.Intrinsic.String.Build("{0}-   -{1}",V.Local.sJob,V.Local.sLaborSeqRet,V.Local.sWO)
+	F.Intrinsic.Control.EndIf
+
+	' Job Header : Description, Sales_Order, Sales_Order_Line, Customer_PO, Customer, Part, Priority, Qty_Order
+	F.Intrinsic.String.Build("select Description, Sales_Order, Sales_Order_Line, Customer_PO, Customer, Part, Priority, Qty_Order,DRAWING_CUSTOMER from v_Job_Header where Job = '{0}' and Suffix = '{1}'",V.Local.sJob,V.Local.sSuffix,V.Local.sSel)
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSel,V.Local.sJobRet)
+	F.Intrinsic.String.Split(V.Local.sJobRet,"*!*",V.Local.sJobRet)
+	V.Local.sJobRet.RedimPreserve(0,8)
+	'Build CADFileName for that Node per Jones Metal
+	'CADfilename tag needs to hold the full UNC path to our GEO file.
+	'The GEO file name (less the .GEO file extension) is in the Drawing field of the router.
+	'The full CADfilename tag is in this format: ?\\filesrvr\programming\tops100\YYYY\geo\filename.GEO
+	'YYYY is the 4 digit year as identified by the 2nd & 3rd digits of the filename. Note some files go back to 1998.
+	'Example for the following name in the drawing field: J14175CUS01
+	'The full path would be \\filesrvr\programming\tops100\2014\geo\J14175CUS01.GEO
+	
+	'check to see if User Field 1 in WO Header is populated
+	F.Intrinsic.String.Build("SELECT USER_1 FROM V_WO_USER_FLDS WHERE JOB = '{0}' AND SUFFIX = '{1}' ",V.Local.sJob,V.Local.sSuffix,V.Local.sSel)
+	F.ODBC.Connection!Con.OpenLocalRecordsetRO("RST",V.Local.sSel)
+	F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+		'WE HAVE SOMETHING IN USER_1 BUT LETS MAKE SURE IT IS NOT BLANK
+		F.Intrinsic.Control.If(V.ODBC.Con!rst.FieldValTrim!USER_1,<>,"")
+			V.Local.sGMT.Set(V.ODBC.Con!rst.FieldValTrim!USER_1)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Else
+		V.Local.sGMT.Set("")
+	F.Intrinsic.Control.EndIf
+	F.ODBC.Con!RST.Close
+
+	'if User Field 1 is not blank then we will add it as a GMT file
+	F.Intrinsic.Control.If(V.Local.sGMT,<>,"")
+		F.Intrinsic.String.Mid(V.Local.sGMT.Trim,2,2,V.Local.sCADRet)
+		F.Intrinsic.Control.If(V.Local.sCADRet.Long,>,90)
+			'Folders from 2000s
+			F.intrinsic.string.build("19{0}",V.local.scadret.trim,V.local.sCadRet)
+		F.Intrinsic.Control.Else
+			'Folders from 1990s
+			F.intrinsic.string.build("20{0}",V.local.scadret.trim,V.local.sCadRet)
+		F.Intrinsic.Control.EndIf
+'3/11/16 sas - per Russ he wants _Rev to be added to the end of the file name before the .GEO if the part has a revision. If the part doesn't have  a revision then don't even put _
+		F.Intrinsic.String.RPad(V.Local.sJobRet(5).Trim," ",20,V.Local.sRev)
+		V.Local.sRev.Set(V.Local.sRev.Right3)
+		F.Intrinsic.Control.If(V.Local.sRev.Trim,<>,"")
+			F.Intrinsic.String.Build("{0}_{1}",V.Local.sGMT.Trim,V.Local.sRev.Trim,V.Local.sFileCad)
+			F.Intrinsic.String.Build("\\filesrvr\programming\tops100\{0}\geo\{1}.GMT",V.Local.sCADRet,V.Local.sFileCad.Trim,V.Local.sCADFileName)
+		F.Intrinsic.Control.Else
+			'Final File name
+			F.Intrinsic.String.Build("\\filesrvr\programming\tops100\{0}\geo\{1}.GMT",V.Local.sCADRet,V.Local.sGMT.Trim,V.Local.sCADFileName)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.ElseIf(V.Local.sJobRet(8).Trim,<>,"")
+		F.Intrinsic.String.Mid(V.Local.sJobRet(8).Trim,2,2,V.Local.sCADRet)
+		F.Intrinsic.Control.If(V.Local.sCADRet.Long,>,90)
+			'Folders from 2000s
+			F.intrinsic.string.build("19{0}",V.local.scadret.trim,V.local.sCadRet)
+		F.Intrinsic.Control.Else
+			'Folders from 1990s
+			F.intrinsic.string.build("20{0}",V.local.scadret.trim,V.local.sCadRet)
+		F.Intrinsic.Control.EndIf
+'3/11/16 sas - per Russ he wants _Rev to be added to the end of the file name before the .GEO if the part has a revision. If the part doesn't have  a revision then don't even put _
+'he also wants
+		F.Intrinsic.String.RPad(V.Local.sJobRet(5).Trim," ",20,V.Local.sRev)
+		V.Local.sRev.Set(V.Local.sRev.Right3)
+		F.Intrinsic.Control.If(V.Local.sRev.Trim,<>,"")
+			F.Intrinsic.String.Build("{0}_{1}",V.Local.sJobRet(8).Trim,V.Local.sRev.Trim,V.Local.sFileCad)
+			F.Intrinsic.String.Build("\\filesrvr\programming\tops100\{0}\geo\{1}.GEO",V.Local.sCADRet,V.Local.sFileCad.Trim,V.Local.sCADFileName)
+		F.Intrinsic.Control.Else
+			'Final File name
+			F.Intrinsic.String.Build("\\filesrvr\programming\tops100\{0}\geo\{1}.GEO",V.Local.sCADRet,V.Local.sJobRet(8).Trim,V.Local.sCADFileName)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Else
+		V.Local.sCADFileName.Set("")
+	F.Intrinsic.Control.EndIf
+	' Material seq : Part
+	F.Intrinsic.String.Build("select Part, Units from Job_Operations where LMO = 'M' and Job = '{0}' and Suffix = '{1}' and seq < '{2}' order by Seq desc",V.Local.sJob,V.Local.sSuffix,V.Local.sLaborSeqRet,V.Local.sSel)
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSel,V.Local.sMatRet)
+	F.Intrinsic.String.Split(V.Local.sMatRet,"*!*",V.Local.sMatRet)
+	V.Local.sMatRet.RedimPreserve(0,1)
+'3/11/16 sas -per Russ add in a check to make sure that we have enough on hand for the part to meet the qty_order
+'	F.Intrinsic.String.Build("SELECT QTY_ONHAND FROM V_INVENTORY_MSTR WHERE PART = '{0}' AND QTY_ONHAND >= '{1}' ",V.Local.sMatRet(0).PSQLFriendly,V.Local.sMatRet(1).Trim,V.Local.sSel)
+'	F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst",V.Local.sSel)
+'	F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+'		F.Intrinsic.Control.If(V.ODBC.Con!rst.FieldValFloat!QTY_ONHAND,<>,0)
+
+			' Customer Name is also needed
+			F.Intrinsic.String.Build("select Name_Customer from v_Customer_Master where Customer = '{0}'",V.Local.sJobRet(4).Trim,V.Local.sSel)
+			F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSel,V.Local.sCustRet)
+
+			' ======================== PRODUCTION ORDER
+			' create ProductionOrder node, with attribute
+			F.Global.XML.CreateElementNode("xmlDoc","ProductionOrder","")
+			F.Global.XML.CreateAttributeNode("xmlDoc","OrderNo",V.Local.sWO)
+			F.Global.XML.SetAttributeToNode("xmlDoc","ProductionOrder","OrderNo")
+			F.Global.XML.DestroyNode("xmlDoc","OrderNo")
+			F.global.xml.appendNode("xmlDoc","ProductionOrder",V.Local.shold)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrders","ProductionOrder")
+			' Description
+			'Now we are going to get the Job Lasor comments
+			F.Intrinsic.String.Build("SELECT DESCRIPTION FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND LMO = 'C' AND SEQ > '{2}' AND SEQ < ISNULL((SELECT TOP 1 SEQ FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQ > '{2}' AND SEQ < '995000' AND LMO = 'L' ),'995000') ORDER BY SEQ ASC ",V.Local.sJob.Trim,V.Local.sSuffix.Trim,V.Local.sLaborSeqRet.Trim,V.Local.sSel)
+			F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSel,V.Local.sComment)
+			F.Intrinsic.String.Replace(V.Local.sComment,"*!*","",V.Local.sComment)
+			F.Intrinsic.String.Replace(V.Local.sComment,"#$#"," ",V.Local.sComment)
+			v.Local.sComments.Set(v.Local.sComment)
+			'if comment is greater than 255 then we show 254 characters and add a + to the end so that they know that there is more comments on the job
+			F.Intrinsic.Control.If(V.Local.sComment.Length,>,255)
+				F.Intrinsic.String.Build("{0}+",V.Local.sComment.Left254,V.Local.sComment)
+			F.Intrinsic.Control.EndIf
+'			F.Intrinsic.Control.CallSub(Filecharacter,"VAL",V.Local.sJobRet(0).Trim)
+'			F.Global.XML.CreateElementNode("xmlDoc","Description",V.Args.VAL)
+'			F.Global.XML.CreateElementNode("xmlDoc","Description",V.Local.sJobRet(0).Trim)
+			F.Global.XML.CreateElementNode("xmlDoc","Description",V.Local.sComment.Trim)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","Description")
+			F.global.xml.appendNode("xmlDoc","Description",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","Description")
+
+			' Barcode
+			F.Global.XML.CreateElementNode("xmlDoc","Barcode","")
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","Barcode")
+			F.global.xml.appendNode("xmlDoc","Barcode",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","Barcode")
+
+			' Sales Order
+'			F.Global.XML.CreateElementNode("xmlDoc","CustomerOrderNo",V.Local.sJobRet(1).Trim)
+'			Changing this to hold the raw material and lasor type
+			'This will be Work Order Material, {space}, Alternate Description 2, {dash} "N" for Nitrogen and omit the {dash} for Oxygen
+			'from the Raw material I need to get Alt Description 2
+			F.Intrinsic.String.Build("SELECT DESCRIPTION_3 FROM V_INVENTORY_MST2 WHERE PART = '{0}' ",V.Local.sMatRet(0).PSQLFriendly,V.Local.sSel)
+			F.ODBC.Connection!Con.OpenLocalRecordsetRO("rstDesc",V.Local.sSel)
+			F.Intrinsic.Control.If(V.ODBC.Con!rstDesc.EOF,=,False)
+				V.Local.sDesc.Set(V.ODBC.Con!rstDesc.FieldValTrim!DESCRIPTION_3)
+			F.Intrinsic.Control.Else
+				V.Local.sDesc.Set("")
+			F.Intrinsic.Control.EndIf
+			F.ODBC.Con!rstDesc.Close
+'			'Now we are going to parse the Job Lasor comments for NITRO
+'			F.Intrinsic.String.Build("SELECT DESCRIPTION FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND LMO = 'C' AND SEQ > '{2}' AND SEQ < ISNULL((SELECT TOP 1 SEQ FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQ > '{2}' AND SEQ < '995000' AND LMO = 'L' ),'995000') ORDER BY SEQ ASC ",V.Local.sJob.Trim,V.Local.sSuffix.Trim,V.Local.sLaborSeqRet.Trim,V.Local.sSel)
+'			F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSel,V.Local.sComment)
+'			F.Intrinsic.String.Replace(V.Local.sComment,"*!*","",V.Local.sComment)
+'			F.Intrinsic.String.Replace(V.Local.sComment,"#$#","",V.Local.sComment)
+			F.Intrinsic.String.IsInString(V.Local.sComments,"NITRO",True,V.Local.bExists)
+			'If we find NITRO then we add -N to the end else we don't
+			F.Intrinsic.Control.If(V.Local.bExists,=,True)
+				F.Intrinsic.String.Build("{0} {1}-N",V.Local.sMatRet(0).Trim,V.Local.sDesc.Trim,V.Local.sDesc)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.String.Build("{0} {1}",V.Local.sMatRet(0).Trim,V.Local.sDesc.Trim,V.Local.sDesc)
+			F.Intrinsic.Control.EndIf
+'			F.Intrinsic.Control.CallSub(Filecharacter,"VAL",V.Local.sDesc.Trim)
+'			F.Global.XML.CreateElementNode("xmlDoc","CustomerOrderNo",V.Args.VAL)
+			F.Global.XML.CreateElementNode("xmlDoc","CustomerOrderNo",V.Local.sDesc.Trim)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","CustomerOrderNo")
+			F.global.xml.appendNode("xmlDoc","CustomerOrderNo",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","CustomerOrderNo")
+
+			' Customer PO
+			F.Global.XML.CreateElementNode("xmlDoc","CustomerBookingNo",V.Local.sJobRet(3).Trim)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","CustomerBookingNo")
+			F.global.xml.appendNode("xmlDoc","CustomerBookingNo",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","CustomerBookingNo")
+
+			' Customer Name
+'			F.Intrinsic.Control.CallSub(Filecharacter,"VAL",V.Local.sCustRet.Trim)
+'			F.Global.XML.CreateElementNode("xmlDoc","CustomerName",V.Args.VAL)
+			F.Global.XML.CreateElementNode("xmlDoc","CustomerName",V.Local.sCustRet.Trim)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","CustomerName")
+			F.global.xml.appendNode("xmlDoc","CustomerName",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","CustomerName")
+			V.Local.sCustRet.Set("")
+
+			' Customer No
+			F.Global.XML.CreateElementNode("xmlDoc","CustomerNo",V.Local.sJobRet(4).Trim)
+			'we are using Customer No as the comments field now
+			'if comment is greater than 50 then we show 49 characters and add a + to the end so that they know that there is more comments on the job
+'			F.Intrinsic.Control.If(V.Local.sComment.Length,>,50)
+'				F.Intrinsic.String.Build("{0}+",V.Local.sComment.Left49,V.Local.sComment)
+'			F.Intrinsic.Control.EndIf
+'			F.Intrinsic.Control.CallSub(Filecharacter,"VAL",V.Local.sComment.Trim)
+'			F.Global.XML.CreateElementNode("xmlDoc","CustomerNo",V.Local.sComment.Trim)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","CustomerNo")
+			F.global.xml.appendNode("xmlDoc","CustomerNo",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","CustomerNo")
+			V.Local.sComment.Set("")
+
+			' Part
+'			F.Intrinsic.Control.CallSub(Filecharacter,"VAL",V.Local.sJobRet(5).Trim)
+'			F.Global.XML.CreateElementNode("xmlDoc","PartNo",V.Args.VAL)
+			F.Global.XML.CreateElementNode("xmlDoc","PartNo",V.Local.sJobRet(5).Trim)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","PartNo")
+			F.global.xml.appendNode("xmlDoc","PartNo",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","PartNo")
+
+			' Part Description
+			F.Intrinsic.Control.CallSub(Filecharacter,"VAL",V.Local.sJobRet(0).Trim)
+			F.Global.XML.CreateElementNode("xmlDoc","PartDescription",V.Args.VAL)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","PartDescription")
+			F.global.xml.appendNode("xmlDoc","PartDescription",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","PartDescription")
+
+			' DrawingNo
+			F.Global.XML.CreateElementNode("xmlDoc","DrawingNo","")
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","DrawingNo")
+			F.global.xml.appendNode("xmlDoc","DrawingNo",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","DrawingNo")
+
+			' CAD File
+			'See above, instructions from Jones metal on building correct file path based on 2 characters found in file being read for the year that defines a subfolder.
+			F.Global.XML.CreateElementNode("xmlDoc","CADFilename",V.Local.sCADFileName)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","CADFilename")
+			F.global.xml.appendNode("xmlDoc","CADFilename",V.Local.Shold)
+			F.Global.XML.DestroyNode("xmlDoc","CADFilename")
+
+			' Assembly
+			F.Global.XML.CreateElementNode("XmlDoc","Assembly","")
+			F.Global.XML.AppendNode("XmlDoc","ProductionOrder","Assembly")
+			F.Global.Xml.AppendNode("XmlDoc","Assembly",V.Local.Shold)
+			F.Global.XML.DestroyNode("XmlDoc","Assembly")
+
+			' Due Date
+			F.Intrinsic.String.Split(V.Local.sWOHold(3),"/",V.Local.sDueDate)
+			V.Local.sDueDate.RedimPreserve(0,2)
+			F.Intrinsic.String.Build("{0}/{1}/{2}",V.Local.sDueDate(1).Trim,V.Local.sDueDate(0).Trim,V.Local.sDueDate(2).Trim,V.Local.sWOHold(3))
+			F.Global.XML.CreateElementNode("xmlDoc","DueDate",V.Local.sWOHold(3).Trim)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","DueDate")
+			F.global.xml.appendNode("xmlDoc","DueDate",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","DueDate")
+
+			' Priority
+			F.Global.XML.CreateElementNode("xmlDoc","Priority",V.Local.sJobRet(6).Trim)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","Priority")
+			F.global.xml.appendNode("xmlDoc","Priority",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","Priority")
+
+			' Qty
+			F.Global.XML.CreateElementNode("xmlDoc","DesiredQuantity",V.Local.sJobRet(7).Trim)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","DesiredQuantity")
+			F.global.xml.appendNode("xmlDoc","DesiredQuantity",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","DesiredQuantity")
+
+			' Status
+			'Per Jones metal ElementNode for Status should be 30
+			'changign the status to 10 so that it doesn't get sent to processing
+			F.Global.XML.CreateElementNode("xmlDoc","Status","10")
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","Status")
+			F.global.xml.appendNode("xmlDoc","Status",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","Status")
+
+			' Workcenter
+			'Per Jones Metal, Workplanname ElementNode should be NULL
+		'	F.Global.XML.CreateElementNode("xmlDoc","WorkplanName",V.Local.sWOHold(4).Trim)
+			F.Global.XML.CreateElementNode("xmlDoc","WorkplanName","")
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","WorkplanName")
+			F.global.xml.appendNode("xmlDoc","WorkplanName",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","WorkplanName")
+
+			' Material
+			F.Intrinsic.Control.CallSub(Filecharacter,"VAL",V.Local.sMatRet.Trim)
+			F.Global.XML.CreateElementNode("xmlDoc","Material",V.Local.sMatRet.Trim)
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","Material")
+			F.global.xml.appendNode("xmlDoc","Material",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","Material")
+
+			' FillerPartsOrder
+			F.Global.XML.CreateElementNode("xmlDoc","FillerPartsOrder","")
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","FillerPartsOrder")
+			F.global.xml.appendNode("xmlDoc","FillerPartsOrder",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","FillerPartsOrder")
+
+			' RotationPermissionFlag
+			F.Global.XML.CreateElementNode("xmlDoc","RotationPermissionFlag","")
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","RotationPermissionFlag")
+			F.global.xml.appendNode("xmlDoc","RotationPermissionFlag",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","RotationPermissionFlag")
+
+			' RotationIncrement
+			F.Global.XML.CreateElementNode("xmlDoc","RotationIncrement","")
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","RotationIncrement")
+			F.global.xml.appendNode("xmlDoc","RotationIncrement",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","RotationIncrement")
+
+			' RollingDirection
+			F.Global.XML.CreateElementNode("xmlDoc","RollingDirection","")
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","RollingDirection")
+			F.global.xml.appendNode("xmlDoc","RollingDirection",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","RollingDirection")
+
+			' MonitoringFlag	
+			F.Global.XML.CreateElementNode("xmlDoc","MonitoringFlag","")
+			F.Global.XML.AppendNode("xmlDoc","ProductionOrder","MonitoringFlag")
+			F.global.xml.appendNode("xmlDoc","MonitoringFlag",V.Local.shold)
+			F.Global.XML.DestroyNode("xmlDoc","MonitoringFlag")
+
+			F.Global.XML.DestroyNode("xmlDoc","ProductionOrder")
+'		F.Intrinsic.Control.EndIf
+'	F.Intrinsic.Control.EndIf
+'	F.ODBC.Con!rst.Close
+
+'======================================
+F.Intrinsic.Control.Next(V.Local.iForWO)
+
+F.Global.XML.AppendNodeToRoot("xmlDoc","ProductionOrders")
+F.Global.XML.DestroyNode("xmlDoc","ProductionOrders")
+F.Global.XML.DestroyNode("xmlDoc","ErpExchange")
+
+'Save document; if called after APS, then it is an erpmod
+F.Intrinsic.Control.If(V.Caller.Hook,=,29100)
+	F.Intrinsic.String.Build("ProdOrderImp{0}{1}.erpmod",V.Local.sJob,V.Local.sSuffix,V.Local.sFileName)
+F.Intrinsic.Control.Else
+'	F.Intrinsic.String.Build("ProdOrderImp{0}{1}.erp",V.Local.sJob,V.Local.sSuffix,V.Local.sFileName)
+'Changed per jones metal from .erp to .xml
+	F.Intrinsic.String.Build("ProdOrderImp{0}{1}.xml",V.Local.sJob,V.Local.sSuffix,V.Local.sFileName)
+
+F.Intrinsic.Control.EndIf
+F.global.xml.saveDocument("xmlDoc",V.Global.sSAVEPATH,V.Local.sFileName)
+'close document
+F.global.xml.CloseDocument("xmlDoc")
+
+F.Intrinsic.String.Build("{0}{1}",V.Global.sSAVEPATH,V.Local.sFileName,V.Local.sFileName)
+F.Intrinsic.Variable.AddRV("XMLFILE",V.Local.sFilename)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("createXML_New_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_WO_To_Trumpf_NET.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub(unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.createXML_New.End
+
+Program.Sub.unload.Start
+
+F.ODBC.Connection!Con.Close
+F.Intrinsic.Control.End
+
+Program.Sub.unload.End
+
+Program.Sub.filePath.Start
+F.Intrinsic.Control.SetErrorHandler("filePath_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.sFilePath.Declare(String)
+V.Local.sDATFile.Declare(String)
+V.Local.bExists.Declare(Boolean)
+V.Local.sSavePath.Declare(String)
+V.Local.iFor.Declare(Long)
+V.Local.sLine.Declare(String)
+
+F.Intrinsic.String.Build("{0}\GSS_TRUMPF.dat",v.Caller.FilesDir,v.Local.sFilePath)
+F.Intrinsic.File.Exists(v.Local.sFilePath,v.Local.bExists)
+F.Intrinsic.Control.If(V.Local.bExists,=,False)
+	F.Intrinsic.UI.Msgbox("File Save Path Not Found.")
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.Else
+	F.Intrinsic.File.File2String(v.Local.sFilePath,v.Local.sDATFile)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Split(v.Local.sDATFile,v.Ambient.NewLine,v.Local.sLine)
+F.Intrinsic.Control.For(v.Local.iFor,v.Local.sLine.LBound,v.Local.sLine.UBound,1)
+	F.Intrinsic.String.Split(v.Local.sLine(v.Local.iFor),"::",v.Local.sSavePath)
+	V.Local.sSavePath.RedimPreserve(0,1)
+	F.Intrinsic.Control.SelectCase(v.Local.sSavePath(0))
+	F.Intrinsic.Control.Case("WRITE")
+		F.Intrinsic.Control.ExitFor(V.Local.iFor)
+	F.Intrinsic.Control.EndSelect
+F.Intrinsic.Control.Next(V.Local.iFor)
+
+F.Intrinsic.Control.If(v.Local.sSavePath(1).Trim,=,"")
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Variable.AddRV("SAVEPATH",v.Local.sSavePath(1).Trim)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("filePath_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_WO_To_Trumpf_NET.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub(unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.filePath.End
+
+Program.Sub.XML_Header.Start
+F.Intrinsic.Control.SetErrorHandler("XML_Header_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.bExists.Declare(Boolean)
+V.Local.sText.Declare(String)
+V.Local.sHeader.Declare(String)
+V.Local.sHold.Declare(String)
+F.Intrinsic.File.Exists(v.Args.XMLFILE,v.Local.bExists)
+F.Intrinsic.Control.If(V.Local.bExists,=,False)
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+
+' to meet their file-checker xsd
+V.Local.sHeader.Redim(0,3)
+V.Local.sHeader(0).Set("<?xml version="1.0" encoding="windows-1252"?> ")
+V.Local.sHeader(1).Set("<ErpExchange xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ")
+V.Local.sHeader(2).Set("xmlns:xsd="http://www.w3.org/2001/XMLSchema"> ")
+V.Local.sHeader(3).Set("<Version>1.2</Version> ")
+F.Intrinsic.String.Join(v.Local.sHeader,v.Ambient.NewLine,v.Local.sHeader)
+F.Intrinsic.File.File2String(v.Args.XMLFILE,v.Local.sText)
+F.Intrinsic.String.Build("<?xml version={0}1.0{0}?>",V.Ambient.DblQuote,V.Local.sHold)
+F.Intrinsic.String.Replace(v.Local.sText,v.Local.sHold,v.Local.sHeader,v.Local.sText)
+F.Intrinsic.String.Build("{0}{1}</ErpExchange>",v.Local.sText,v.Ambient.NewLine,v.Local.sText)
+F.Intrinsic.File.String2File(v.Args.XMLFILE,v.Local.sText)
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("XML_Header_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_WO_To_Trumpf_NET.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub(unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.XML_Header.End
+
+Program.Sub.fileCharacter.Start
+F.Intrinsic.Control.SetErrorHandler("fileCharacter_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.sVal.Declare(String)
+
+F.Intrinsic.String.Replace(V.Args.VAL,"&","&amp;",V.Local.sVal)
+F.Intrinsic.String.Replace(V.Local.sVal,"'","&#x27;",V.Local.sVal)
+F.Intrinsic.String.Replace(V.Local.sVal,"<","&lt;",V.Local.sVal)
+F.Intrinsic.String.Replace(V.Local.sVal,">","&gt;",V.Local.sVal)
+F.Intrinsic.String.Replace(V.Local.sVal,V.Ambient.DblQuote,"&quot;",V.Local.sVal)
+
+F.Intrinsic.Variable.AddRV("VAL",V.Local.sVal)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("fileCharacter_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_WO_To_Trumpf_NET.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub(unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.fileCharacter.End
+
+Program.Sub.LicenseVerification.Start
+F.Intrinsic.Control.SetErrorHandler("LicenseVerification_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.bLicensed.Declare(Boolean)
+
+' if license is not found, the script will end
+f.Global.General.IsLicensedByModuleName("NES",v.Local.bLicensed)
+F.Intrinsic.Control.If(V.Local.bLicensed,=,False)
+	F.Intrinsic.UI.Msgbox("Not Licensed for Nesting Integrations")
+	F.Intrinsic.Control.CallSub(Unload)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("LicenseVerification_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_WO_To_Trumpf_NET.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub(unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.LicenseVerification.End
+
+program.sub.cmdgo_click.start
+F.Intrinsic.Control.SetErrorHandler("cmdgo_click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+Gui.SS_Form1..Visible(false)
+f.Intrinsic.UI.InvokeWaitDialog("Writing Export File.")
+F.Intrinsic.Control.CallSub(Findinterfaceseq)
+F.Intrinsic.Control.CallSub(Createxml_new)
+f.Intrinsic.UI.CloseWaitDialog
+F.Intrinsic.Control.CallSub(Unload)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdgo_click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_WO_To_Trumpf_NET.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(Unload)
+Function.Intrinsic.Control.EndIf
+program.sub.cmdgo_click.End
+
+Program.Sub.Comments.Start
+${$0$}$GCG_GSS_WO_Requrements_To_Bysoft-HY$}$JCT$}$6/21/2015$}$False
+${$3$}$0$}$$}$0$}$-1$}$$}$12:00:00 AM$}$for Hyflex, per quote 6707
+create xml file with wo requirements, for Bysoft
+Hook 16800
+SF> File> Work Orders> New
+When hook fires, if the job has a labor seq that will be handled by a workcenter that has been flagged as a Nesting Interface workcenter, create an xml file to communicate the open requirements.
+
+'Changed to pull in only certain workcenters per Jones Metal LS01,02,and 05 - SFF 12/14/2015
+
+${$4$}$0$}$$}$0$}$-1$}$SILAS FULSOM$}$12/14/2015 2:47:03 PM$}$Changes Requested and Implemented on Code by SFF:
+
+1)	The import file extension needs to change from .erp to .xml
+2)	PPSYImport tag needs to change to "PPSImport" (drop the Y).
+3)	Priority tag is misspelled (Priotity).
+4)	WorkplanName tag should be left blank.
+5)	Status tag should be set to 30.
+6)	CADfilename tag needs to hold the full UNC path to our GEO file.
+a)	The GEO file name (less the .GEO file extension) is in the Drawing field of the router.
+b)	The full CADfilename tag is in this format: \\filesrvr\programming\tops100\YYYY\geo\filename.GEO
+i)	YYYY is the 4 digit year as identified by the 2nd & 3rd digits of the filename. Note some files go back to 1998.
+c)	Example for the following name in the drawing field: J14175CUS01
+i)	The full path would be \\filesrvr\programming\tops100\2014\geo\J14175CUS01.GEO
+7)	Needs to only export work orders that have the following work centers in JOB_OPERATIONS_WC.WORKCENTER:
+a)	LS01
+b)	LS02
+c)	LS05
+
+Program.Sub.Comments.End
+
+Program.Sub.ScreenSS.Start
+SS_Form1{{CAPTION::Trumpf Cutoff Date
+SS_Form1.CTRL{{NAME::dtpCutoff\\TYPE::6\\CAPTION::Cutoff Date\\TABSTOP::1\\GROUP::-1\\BROWSER::0\\SIZE::1
+SS_Form1.CTRL{{NAME::cmdGo\\TYPE::5\\CAPTION::Go\\TABSTOP::2\\GROUP::-1\\BROWSER::0\\SIZE::1
+
+Program.Sub.ScreenSS.End
+
