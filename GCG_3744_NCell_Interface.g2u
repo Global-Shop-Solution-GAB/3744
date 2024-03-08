@@ -1,0 +1,2000 @@
+Program.Sub.ScreenSU.Start
+Gui.Form_Interface..Create
+Gui.Form_Interface..Caption("NCell Interface to GSS")
+Gui.Form_Interface..Size(15360,9705)
+Gui.Form_Interface..MinX(0)
+Gui.Form_Interface..MinY(0)
+Gui.Form_Interface..Position(0,0)
+Gui.Form_Interface..BackColor(-2147483633)
+Gui.Form_Interface..MousePointer(0)
+Gui.Form_Interface..Event(UnLoad,Form_Interface_UnLoad)
+Gui.Form_Interface.cmboNNestID.Create(ComboBox)
+Gui.Form_Interface.cmboNNestID.Size(1815,330)
+Gui.Form_Interface.cmboNNestID.Position(105,495)
+Gui.Form_Interface.cmboNNestID.Event(Click,cmboNNestID_Click)
+Gui.Form_Interface.cmboNNestID.Event(LostFocus,cmboNNestID_LostFocus)
+Gui.Form_Interface.lblNCell_Nest.Create(Label,"Ncell Nest ID:",True,1815,255,0,105,270,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Interface.txt_TotalSheets.Create(TextBox,"",True,1215,300,0,2085,495,True,0,"Arial",8,-2147483643,1)
+Gui.Form_Interface.txt_TotalSheets.Event(LostFocus,txt_TotalSheets_LostFocus)
+Gui.Form_Interface.lblTotal_Sheets.Create(Label,"Total Sheets",True,1815,270,0,2085,255,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Interface.GsGridControl1.Create(GsGridControl)
+Gui.Form_Interface.GsGridControl1.Size(14880,3930)
+Gui.Form_Interface.GsGridControl1.Position(105,2880)
+Gui.Form_Interface.GsGridControl1.Event(CellValueChanged,GsGridControl1_CellValueChanged)
+Gui.Form_Interface.lbl_Lot.Create(Label,"Lot",True,2250,255,0,2085,1320,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Interface.cbo_Lot.Create(DropDownList)
+Gui.Form_Interface.cbo_Lot.Size(2265,330)
+Gui.Form_Interface.cbo_Lot.Position(2085,1530)
+Gui.Form_Interface.cbo_Lot.Event(Click,cbo_Lot_Change)
+Gui.Form_Interface.cmboSerial.Create(DropDownList)
+Gui.Form_Interface.cmboSerial.Size(1215,330)
+Gui.Form_Interface.cmboSerial.Position(4455,1530)
+Gui.Form_Interface.cmboSerial.Event(Click,cbo_Lot_Change)
+Gui.Form_Interface.lblSize.Create(Label,"Size",True,1275,255,0,4470,1320,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Interface.lblWorkOrderIssueAmt.Create(Label,"Work Orders Issue Amt",True,2940,255,0,105,2640,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Interface.txt_Material.Create(TextBox,"",True,1830,300,0,105,1530,True,0,"Arial",8,-2147483643,1)
+Gui.Form_Interface.lbl_Material.Create(Label,"Material",True,1575,255,0,105,1320,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Interface.GsGridControl2.Create(GsGridControl)
+Gui.Form_Interface.GsGridControl2.Size(14880,1275)
+Gui.Form_Interface.GsGridControl2.Position(105,7260)
+Gui.Form_Interface.GsGridControl2.Event(CellValueChanged,GsGridControl2_CellValueChanged)
+Gui.Form_Interface.GsGridControl2.Event(RowCellClick,GsGridControl2_RowCellClick)
+Gui.Form_Interface.lblDropamt.Create(Label,"Drop Amt",True,2940,255,0,105,7035,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Interface.cmdPost.Create(Button)
+Gui.Form_Interface.cmdPost.Size(855,375)
+Gui.Form_Interface.cmdPost.Position(1020,8715)
+Gui.Form_Interface.cmdPost.Caption("Post")
+Gui.Form_Interface.cmdPost.DefaultValue("")
+Gui.Form_Interface.cmdPost.Event(Click,cmdPost_Click)
+Gui.Form_Interface.cmdRePrint.Create(Button)
+Gui.Form_Interface.cmdRePrint.Size(855,375)
+Gui.Form_Interface.cmdRePrint.Position(105,8715)
+Gui.Form_Interface.cmdRePrint.Caption("Re-Print")
+Gui.Form_Interface.cmdRePrint.DefaultValue("")
+Gui.Form_Interface.cmdRePrint.Event(Click,cmdRePrint_Click)
+Gui.Form_Interface.GsGridControl3.Create(GsGridControl)
+Gui.Form_Interface.GsGridControl3.Size(8595,1650)
+Gui.Form_Interface.GsGridControl3.Position(6390,495)
+Gui.Form_Interface.lblAvailQty.Create(Label,"Available Qty's",True,2130,255,0,6390,270,True,0,"Arial",8,-2147483633,0)
+Gui.Form_Interface.cmdReFreshQty.Create(Button)
+Gui.Form_Interface.cmdReFreshQty.Size(855,375)
+Gui.Form_Interface.cmdReFreshQty.Position(14145,2190)
+Gui.Form_Interface.cmdReFreshQty.Caption("Refresh")
+Gui.Form_Interface.cmdReFreshQty.DefaultValue("")
+Gui.Form_Interface.cmdReFreshQty.Event(Click,PopulateQtyGrid)
+Gui.Form_Interface.cmd_GetNests.Create(Button)
+Gui.Form_Interface.cmd_GetNests.Size(1770,330)
+Gui.Form_Interface.cmd_GetNests.Position(120,870)
+Gui.Form_Interface.cmd_GetNests.Caption("Refresh Nests")
+Gui.Form_Interface.cmd_GetNests.Event(Click,cmd_GetNests_Click)
+Gui.Form_Interface.cmdBinXFer.Create(Button)
+Gui.Form_Interface.cmdBinXFer.Size(1110,375)
+Gui.Form_Interface.cmdBinXFer.Position(6420,2145)
+Gui.Form_Interface.cmdBinXFer.Caption("Bin Transfer")
+Gui.Form_Interface.cmdBinXFer.Event(Click,cmdBinXFer_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Variable.Global.sNBackup.Declare(String)
+Variable.Global.sReadPath.Declare(String)
+Variable.Global.iIndex.Declare(Long)
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sCCC.Declare(String)
+V.Local.sSql.Declare(String)
+
+V.Local.sRet.Declare(String)
+V.Local.sFile.Declare(String)
+V.Local.i.Declare(Long)
+
+'read ncell csv file
+
+F.Intrinsic.String.Build("GLOBAL_{0}",V.Caller.CompanyCode,V.Local.sCCC)
+F.ODBC.Connection!Con.OpenConnection(V.Local.sCCC,"Master","master")
+
+'call sub to read where Ncelll locations are
+F.Intrinsic.Control.CallSub(Filepath,"DAT","Ncell")
+
+'call sub to load the Ncell data
+F.Intrinsic.Control.CallSub(Filelist)
+
+'builsing blank datatable to set gridview properties and for saving.
+V.Local.sSql.Set("Select * From GCG_3744_NCELL_WO Where NestId = ' '")
+F.Data.DataTable.CreateFromSQL("Post","con",V.Local.sSql,True)
+V.Local.sSql.Set("Select * From GCG_3744_NCELL_DROP Where NestId = ' '")
+F.Data.DataTable.CreateFromSQL("Drop","con",V.Local.sSql,True)
+F.Intrinsic.Control.CallSub(setgridviewproperties)
+
+'populate nestid combo box
+F.Intrinsic.Control.CallSub(populate_nestidcombobox)
+
+F.Intrinsic.Control.CallSub(get_data)
+
+Gui.Form_Interface.cmboSerial.Visible(False)
+Gui.Form_Interface.lblSize.Visible(False)
+
+Gui.Form_Interface..ContextMenuCreate("Grid2")
+Gui.Form_Interface..ContextMenuAddItem("Grid2","Add",0,"Add")
+Gui.Form_Interface..ContextMenuAddItem("Grid2","Delete",0,"Delete")
+Gui.Form_Interface..ContextMenuSetItemEventHandler("Grid2","Add","ContextMenuItemSelection")
+Gui.Form_Interface..ContextMenuSetItemEventHandler("Grid2","Delete","ContextMenuItemSelection")
+Gui.Form_Interface..Show
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+Program.Sub.GsGridControl1_CellValueChanged.Start
+F.Intrinsic.Control.SetErrorHandler("GsGridControl1_CellValueChanged_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.fTotalArea.Declare(Float)
+V.Local.sDrop.Declare(String)
+V.Local.fDropArea.Declare(Float)
+V.Local.fDropPercent.Declare(Float)
+V.Local.fIssuePercent.Declare(Float)
+V.Local.sSerial.Declare(String)
+V.Local.fMissingPercent.Declare(Float)
+V.Local.fGssIssue.Declare(Float)
+V.Local.sFilter.Declare(String)
+V.Local.fQty.Declare(Float)
+V.Local.i.Declare(Long)
+V.Local.fTemp.Declare(Float)
+V.Local.fTSheets.Declare(Float)
+
+F.Intrinsic.Control.SelectCase(V.Args.Column.uCase)
+	F.Intrinsic.Control.Case("EMPLOYEE")
+		F.Intrinsic.String.Build("SELECT EMPLOYEE FROM V_EMPLOYEE_MSTR WHERE EMPLOYEE = '{0}' ",V.Args.Value.Trim,V.Local.sSQL)
+		F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSQL,V.Local.sRet)
+		F.Intrinsic.Control.If(V.Local.sRet,<>,"")
+			F.Data.DataView.SetValue("WorkOrder","WorkOrder",-1,"Employee",V.Args.Value)
+			F.Data.DataTable.SetValue("Post",-1,"Employee",V.Args.Value)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.UI.Msgbox("Not a valid Employee Number.")
+			F.Data.DataView.SetValue("WorkOrder","WorkOrder",-1,"Employee","")
+			F.Data.DataTable.SetValue("Post",-1,"Employee","")
+		F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.Case("ISSUE")
+		F.Intrinsic.Control.If(V.Screen.Form_Interface!cbo_Lot.Text,<>,"")
+			F.Intrinsic.String.Build("Select Length, Width From V_INVENTORY_MST2 Where Part = '{0}'",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim,V.Local.sSql)
+			F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst2",V.Local.sSql)
+			F.Intrinsic.Control.If(V.ODBC.Con!rst2.EOF,=,False)
+				F.Intrinsic.String.Build("NestId = {0}",V.Screen.Form_Interface!cmboNNestID.Text,V.Local.sFilter)
+				F.Data.DataTable.Compute("Material","Sum(Qty)",V.Local.sFilter,V.Local.fQty)
+				F.Intrinsic.Math.Evaluate("([V.ODBC.Con!rst2.FieldValFloat!Length]*[V.ODBC.Con!rst2.FieldValFloat!Width])*[V.Local.fQty]",V.Local.fTotalArea)
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+
+		F.ODBC.Con!rst2.Close
+
+		F.Data.DataView.SetValue("WorkOrder","WorkOrder",V.Args.RowIndex,"Issue",V.Args.Value)
+
+		V.Local.fMissingPercent.Set(1)
+		'setting dataview values to prebuilt datatable
+		F.Intrinsic.Control.For(V.Local.i,0,V.DataView.Drops!Drops.RowCount--,1)
+			'calculating gss issue
+			V.Local.sDrop.Set(V.DataView.Drops!Drops(V.Local.i).Size!FieldValTrim)
+			F.Intrinsic.Control.If(V.Local.sDrop,=,"")
+				V.Local.fDropArea.Set(0)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.String.Split(V.Local.sDrop.UCase,"X",V.Local.sDrop)
+				F.Intrinsic.Math.Mult(V.Local.sDrop(0).Float,V.Local.sDrop(1).Float,V.Local.fTemp)
+				F.Intrinsic.Math.Evaluate("[V.Local.fTemp]/([V.Local.fTotalArea]/[V.Local.fQty])",V.Local.fDropPercent)
+				f.Intrinsic.Math.Round(V.Local.fDropPercent,4,V.Local.fDropPercent)
+				F.Data.DataTable.SetValue("Drop",V.Local.i,"Drop_Issue",V.Local.fDropPercent)
+				F.Data.DataView.SetValue("Drops","Drops",V.Local.i,"Drop_Issue",V.Local.fDropPercent)
+				F.Intrinsic.Math.Add(V.Local.fDropArea,V.Local.fTemp,V.Local.fDropArea)
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.Next(V.Local.i)
+
+'		F.Intrinsic.Math.Div(V.Local.fDropArea,V.Local.fTotalArea,V.Local.fDropPercent)
+		F.Intrinsic.Math.Sub(1,V.Local.fDropPercent,V.Local.fIssuePercent)
+		F.Intrinsic.Control.If(V.Screen.Form_Interface!cmboSerial.Text,<>,"")
+			F.Intrinsic.String.Build("Select Serial_Number, Quantity From V_Item_Master Where Part = '{0}' and Lot = '{1}' and Bin = 'TOWER' and Serial_Number = '{2}'",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim,V.Screen.Form_Interface!cbo_Lot.Text,V.Screen.Form_Interface!cmboSerial.Text,V.Local.sSql)
+			F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+'			V.Local.sSerial.Set(V.Screen.Form_Interface!cmboSerial.Text)
+'			F.Intrinsic.String.Split(V.Local.sSerial.UCase,"X",V.Local.sSerial)
+'			F.Intrinsic.Math.Evaluate("([V.Local.sSerial(0)]*[V.Local.sSerial(1)])/[V.Local.fTotalArea]",V.Local.fIssuePercent)
+			F.Intrinsic.Math.Sub(V.ODBC.Con!rst.FieldValFloat!Quantity,V.Local.fDropPercent,V.Local.fIssuePercent)
+			V.Local.fTSheets.Set(V.Screen.Form_Interface!txt_TotalSheets.Text)
+			F.Intrinsic.Math.Sub(V.ODBC.Con!rst.FieldValFloat!Quantity,V.Local.fDropPercent,V.Local.fIssuePercent)
+'			F.Intrinsic.Math.Sub(V.Local.fIssuePercent,V.Local.fDropPercent,V.Local.fIssuePercent)
+'			v.Local.fGssIssue.Set(v.Local.fIssuePercent)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.Math.Div(V.Local.fDropArea,V.Local.fTotalArea,V.Local.fDropPercent)
+			F.Intrinsic.Math.Sub(1,V.Local.fDropPercent,V.Local.fIssuePercent)
+		F.Intrinsic.Control.EndIf
+
+		F.Intrinsic.Math.Evaluate("([V.Local.fIssuePercent]*[V.DataView.WorkOrder!WorkOrder(V.Local.i).Issue!FieldValFloat])",V.Local.fGssIssue)
+		F.Intrinsic.Math.Round(V.Local.fGssIssue,4,V.Local.fGssIssue)
+
+'		F.Intrinsic.Math.Evaluate("([V.Local.fIssuePercent]*[V.DataView.WorkOrder!WorkOrder(V.Args.RowIndex).Issue!FieldValFloat])",V.Local.fGssIssue)
+'
+'		F.Intrinsic.Math.Round(V.Local.fGssIssue,4,V.Local.fGssIssue)
+		F.Data.DataTable.SetValue("Post",V.Args.RowIndex,"Gss_Issue",V.Local.fGssIssue)
+		F.Data.DataView.SetValue("WorkOrder","WorkOrder",V.Args.RowIndex,"Gss_Issue",V.Local.fGssIssue)
+
+F.Intrinsic.Control.EndSelect
+
+F.Data.DataTable.SaveToDB("Post","con","GCG_3744_NCELL_WO","NESTID*!*ID",256,"NESTID@!@NESTID*!*ID@!@ID*!*EMPLOYEE@!@EMPLOYEE*!*TJOB@!@TJOB*!*START_TIME@!@START_TIME*!*END_TIME@!@END_TIME*!*TIME@!@TIME*!*MATERIAL@!@MATERIAL*!*QTY@!@QTY*!*SERIAL@!@SERIAL*!*JOB@!@JOB*!*SUFFIX@!@SUFFIX*!*SEQUENCE@!@SEQUENCE*!*BIN@!@BIN*!*LOT@!@LOT*!*ISSUE@!@ISSUE*!*GSS_ISSUE@!@GSS_ISSUE")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("GsGridControl1_CellValueChanged_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.GsGridControl1_CellValueChanged.End
+
+Program.Sub.GsGridControl2_CellValueChanged.Start
+F.Intrinsic.Control.SetErrorHandler("GsGridControl2_CellValueChanged_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sFilter.Declare(String)
+V.Local.fQty.Declare(Float)
+V.Local.sDrop.Declare(String)
+V.Local.fDropArea.Declare(Float)
+V.Local.fDropPercent.Declare(Float)
+V.Local.i.Declare(Long)
+V.Local.fTotalArea.Declare(Float)
+V.Local.sSerial.Declare(String)
+V.Local.fMissingPercent.Declare(Float)
+V.Local.fIssuePercent.Declare(Float)
+V.Local.fGssIssue.Declare(Float)
+V.Local.sSql.Declare(String)
+V.Local.fTSheets.Declare(Float)
+
+F.Intrinsic.Control.If(V.Screen.Form_Interface!cbo_Lot.Text,<>,"")
+	F.Intrinsic.String.Build("Select Length, Width From V_INVENTORY_MST2 Where Part = '{0}'",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim,V.Local.sSql)
+	F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst2",V.Local.sSql)
+	F.Intrinsic.Control.If(V.ODBC.Con!rst2.EOF,=,False)
+		F.Intrinsic.String.Build("NestId = {0}",V.Screen.Form_Interface!cmboNNestID.Text,V.Local.sFilter)
+		F.Data.DataTable.Compute("Material","Sum(Qty)",V.Local.sFilter,V.Local.fQty)
+		F.Intrinsic.Math.Evaluate("([V.ODBC.Con!rst2.FieldValFloat!Length]*[V.ODBC.Con!rst2.FieldValFloat!Width])*[V.Local.fQty]",V.Local.fTotalArea)
+	F.Intrinsic.Control.EndIf
+
+	F.ODBC.Con!rst2.Close
+
+	F.Intrinsic.String.Build("NestId = {0}",V.Screen.Form_Interface!cmboNNestID.Text,V.Local.sFilter)
+	F.Data.DataTable.Compute("Material","Sum(Qty)",V.Local.sFilter,V.Local.fQty)
+	F.Data.DataTable.SetValue("Drop",V.Args.RowIndex,"Size",V.Args.Value)
+	F.Data.DataView.SetValue("Drops","Drops",V.Args.RowIndex,"Size",V.Args.Value)
+	F.Data.DataTable.SetValue("Drop",V.Args.RowIndex,"Material",V.Screen.Form_Interface!txt_Material.Text)
+	F.Data.DataView.SetValue("Drops","Drops",V.Args.RowIndex,"Material",V.Screen.Form_Interface!txt_Material.Text)
+	V.Local.sDrop.Set(V.Args.Value)
+	F.Intrinsic.Control.If(V.Local.sDrop,=,"")
+		V.Local.fDropArea.Set(0)
+	F.Intrinsic.Control.Else
+		F.Intrinsic.String.Split(V.Local.sDrop.UCase,"X",V.Local.sDrop)
+		F.Intrinsic.Math.Mult(V.Local.sDrop(0).Float,V.Local.sDrop(1).Float,V.Local.fDropArea)
+		F.Intrinsic.Math.Evaluate("[V.Local.fDropArea]/([V.Local.fTotalArea]/[V.Local.fQty])",V.Local.fDropPercent)
+		F.Intrinsic.Math.Round(V.Local.fDropPercent,4,V.Local.fDropPercent)
+		F.Data.DataTable.SetValue("Drop",V.Args.RowIndex,"Drop_Issue",V.Local.fDropPercent)
+		F.Data.DataView.SetValue("Drops","Drops",V.Args.RowIndex,"Drop_Issue",V.Local.fDropPercent)
+	F.Intrinsic.Control.EndIf
+
+	F.Data.DataTable.Compute("Drop","Sum(Drop_Issue)",V.Local.sFilter,V.Local.fDropPercent)
+	F.Intrinsic.Math.Sub(1,V.Local.fDropPercent,V.Local.fIssuePercent)
+	F.Intrinsic.Control.If(V.Screen.Form_Interface!cmboSerial.Text,<>,"")
+		F.Intrinsic.String.Build("Select Serial_Number, Quantity From V_Item_Master Where Part = '{0}' and Lot = '{1}' and Bin = 'TOWER' and Serial_Number = '{2}'",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim,V.Screen.Form_Interface!cbo_Lot.Text,V.Screen.Form_Interface!cmboSerial.Text,V.Local.sSql)
+		F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+'		V.Local.sSerial.Set(V.Screen.Form_Interface!cmboSerial.Text)
+'		F.Intrinsic.String.Split(V.Local.sSerial.UCase,"X",V.Local.sSerial)
+'		F.Intrinsic.Math.Evaluate("([V.Local.sSerial(0)]*[V.Local.sSerial(1)])/[V.Local.fTotalArea]",V.Local.fIssuePercent)
+		F.Intrinsic.Math.Sub(V.ODBC.Con!rst.FieldValFloat!Quantity,V.Local.fDropPercent,V.Local.fIssuePercent)
+		V.Local.fTSheets.Set(V.Screen.Form_Interface!txt_TotalSheets.Text)
+		F.Intrinsic.Math.Div(V.Local.fIssuePercent,V.Local.fTSheets,V.Local.fIssuePercent)
+'		F.Intrinsic.Math.Sub(V.Local.fIssuePercent,V.Local.fDropPercent,V.Local.fIssuePercent)
+'		v.Local.fGssIssue.Set(v.Local.fIssuePercent)
+	F.Intrinsic.Control.Else
+		F.Intrinsic.Math.Evaluate("([V.Local.fDropArea]/[V.Local.fTotalArea])",V.Local.fDropPercent)
+		F.Intrinsic.Math.Sub(1,V.Local.fDropPercent,V.Local.fIssuePercent)
+	F.Intrinsic.Control.EndIf
+'		F.Intrinsic.Math.Evaluate("([V.Local.fIssuePercent]*[V.DataView.WorkOrder!WorkOrder(V.Local.i).Issue!FieldValFloat])",V.Local.fGssIssue)
+'		F.Intrinsic.Math.Round(V.Local.fGssIssue,4,V.Local.fGssIssue)
+
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.Post.RowCount--,1)
+'		F.Intrinsic.Control.If(V.Screen.Form_Interface!cmboSerial.Text,=,"")
+			F.Intrinsic.Math.Evaluate("([V.Local.fIssuePercent]*[V.DataView.WorkOrder!WorkOrder(V.Local.i).Issue!FieldValFloat])",V.Local.fGssIssue)
+
+			F.Intrinsic.Math.Round(V.Local.fGssIssue,4,V.Local.fGssIssue)
+'		F.Intrinsic.Control.EndIf
+		F.Data.DataTable.SetValue("Post",V.Local.i,"Gss_Issue",V.Local.fGssIssue)
+		F.Data.DataView.SetValue("WorkOrder","WorkOrder",V.Local.i,"Gss_Issue",V.Local.fGssIssue)
+	F.Intrinsic.Control.Next(v.Local.i)
+
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.Drop.Rowcount--,<>,-1)
+	F.Data.DataTable.SetValue("Drop",-1,"Serial",V.Screen.Form_Interface!cmboSerial.Text)
+	F.Data.DataView.SetValue("Drops","Drops",-1,"Serial",V.Screen.Form_Interface!cmboSerial.Text)
+F.Intrinsic.Control.EndIf
+
+F.Data.DataTable.SaveToDB("Post","con","GCG_3744_NCELL_WO","NESTID*!*ID",256,"NESTID@!@NESTID*!*ID@!@ID*!*GSS_ISSUE@!@GSS_ISSUE")
+F.Data.DataTable.SaveToDB("Drop","con","GCG_3744_NCELL_Drop","NESTID*!*ID",256,"NESTID@!@NESTID*!*ID@!@ID*!*MATERIAL@!@MATERIAL*!*SIZE@!@SIZE*!*DROP_ISSUE@!@DROP_ISSUE")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("GsGridControl2_CellValueChanged_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.GsGridControl2_CellValueChanged.End
+
+Program.Sub.Form_Interface_UnLoad.Start
+F.Intrinsic.Control.SetErrorHandler("Form_Interface_UnLoad_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+F.ODBC.Connection!Con.Close
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Form_Interface_UnLoad_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Form_Interface_UnLoad.End
+
+Program.Sub.cmdRePrint_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmdRePrint_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.iWidth.Declare(Long)
+V.Local.sColumn.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sParam.Declare(String)
+
+F.Intrinsic.String.Split("1000*!*1500","*!*",V.Local.iWidth)
+F.Intrinsic.String.Split("Nest ID*!*Schedule Number","*!*",V.Local.sColumn)
+
+'create browser for all closed nestid's that show their flexid's so they can be reprinted
+F.Intrinsic.UI.Browser("Flex Schedule Browser","Con","SELECT NESTID, FLEXID FROM GCG_3744_NCELL_MAT WHERE CLOSED = 'Y' ORDER BY NESTID ASC",V.Local.sColumn,V.Local.iWidth,V.Local.sRet)
+F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+	F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+	V.Local.sRet.RedimPreserve(0,1)
+	F.Intrinsic.String.Build("V000000!*!999999!*!{0}!*!000!*!{0}!*!000!*!Y!*!Y",V.Local.sRet(1),V.Local.sParam)
+	F.Global.General.CallWrapperSync(900300,V.Local.sParam)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdRePrint_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.cmdRePrint_Click.End
+
+Program.Sub.cmdPost_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmdPost_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.fIssue.Declare(Float)
+V.Local.i.Declare(Long)
+V.Local.fQty.Declare(Float)
+V.Local.sIssue.Declare(String)
+V.Local.fDifference.Declare(Float)
+V.Local.fGssIssue.Declare(Float)
+
+F.Intrinsic.UI.InvokeWaitDialog("Checking to see if values are Entered.","Updating")
+
+F.Intrinsic.Control.If(V.DataTable.Post(V.DataTable.Post.RowCount--).Employee.FieldValTrim,=,"")
+	F.Intrinsic.UI.Msgbox("Enter an Employee")
+	F.Intrinsic.UI.CloseWaitDialog
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.Post(V.DataTable.Post.RowCount--).Lot.FieldValTrim,=,"")
+	F.Intrinsic.UI.Msgbox("Select a Lot")
+	F.Intrinsic.UI.CloseWaitDialog
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.UI.ChangeWaitStatus("Checking Total Quantity",25)
+'Check on hand to make sure we have enough on hand.
+F.Intrinsic.String.Build("SELECT QUANTITY FROM V_ITEM_MASTER WHERE PART = '{0}' AND LOT = '{1}' AND BIN = '{2}' AND SERIAL_NUMBER = '{3}' ",V.DataView.WorkOrder!WorkOrder(V.DataTable.Post.RowCount--).Material.FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.DataTable.Post.RowCount--).Lot.FieldValTrim,"TOWER",V.DataView.WorkOrder!WorkOrder(V.DataTable.Post.RowCount--).Serial.FieldValTrim,V.Local.sSQL)
+F.ODBC.Connection!Con.OpenLocalRecordsetRO("rstOnHand",V.Local.sSQL)
+F.Intrinsic.Control.If(V.ODBC.Con!rstOnHand.EOF,=,False)
+	V.Local.fQty.Set(V.ODBC.Con!rstOnHand.FieldValFloat!QUANTITY)
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.Post.RowCount--,1)
+		F.Intrinsic.Math.Add(V.Local.fIssue,V.DataTable.Post(V.Local.i).Gss_Issue!FieldValFloat,V.Local.fIssue)
+	F.Intrinsic.Control.Next(V.Local.i)
+
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.Drop.RowCount--,1)
+		F.Intrinsic.Math.Add(V.Local.fIssue,V.DataTable.Drop(V.Local.i).Drop_Issue!FieldValFloat,V.Local.fIssue)
+	F.Intrinsic.Control.Next(V.Local.i)
+
+'	v.Local.fQty.Set(V.ODBC.Con!rstOnHand.FieldValFloat!QUANTITY)
+	F.Intrinsic.String.Format(V.Local.fQty,"0.000000",V.Local.fQty)
+	F.Intrinsic.String.Format(V.Local.fIssue,"0.000000",V.Local.fIssue)
+
+	F.Intrinsic.Control.If(V.Screen.Form_Interface!cmboSerial.Text,=,"")
+		F.Intrinsic.Control.If(V.Local.fIssue,>,V.Screen.Form_Interface!txt_TotalSheets.Text)
+			F.Intrinsic.Math.Sub(V.Local.fIssue,V.Screen.Form_Interface!txt_TotalSheets.Text,V.Local.fDifference)
+			F.Intrinsic.Control.If(V.Local.fDifference,<,.05)
+				V.Local.fIssue.Set(V.Screen.Form_Interface!txt_TotalSheets.Text)
+
+				'getting back to total sheets by removing the small amount from last issued amount in table.
+				F.Intrinsic.Math.Sub(V.DataTable.Post(V.DataTable.Post.RowCount--).Gss_Issue!FieldValFloat,V.Local.fDifference,V.Local.fGssIssue)
+				F.Data.DataTable.SetValue("Post",V.DataTable.Post.RowCount--,"Gss_Issue",V.Local.fGssIssue)
+				F.Data.DataView.SetValue("WorkOrder","WorkOrder",V.DataView.WorkOrder!WorkOrder.RowCount--,"Gss_Issue",V.Local.fGssIssue)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.UI.Msgbox("Issued Amount > Sheets Used")
+				F.Intrinsic.Control.ExitSub
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Else
+		F.Intrinsic.Control.If(V.Local.fIssue,>,V.ODBC.Con!rstOnHand.FieldValFloat!QUANTITY)
+			F.Intrinsic.Math.Sub(V.Local.fIssue,V.ODBC.Con!rstOnHand.FieldValFloat!QUANTITY,V.Local.fDifference)
+			F.Intrinsic.Control.If(V.Local.fDifference,<,.05)
+				V.Local.fIssue.Set(V.ODBC.Con!rstOnHand.FieldValFloat!QUANTITY)
+
+				'getting back to total sheets by removing the small amount from last issued amount in table.
+				F.Intrinsic.Math.Sub(V.DataTable.Post(V.DataTable.Post.RowCount--).Gss_Issue!FieldValFloat,V.Local.fDifference,V.Local.fGssIssue)
+				F.Data.DataTable.SetValue("Post",V.DataTable.Post.RowCount--,"Gss_Issue",V.Local.fGssIssue)
+				F.Data.DataView.SetValue("WorkOrder","WorkOrder",V.DataView.WorkOrder!WorkOrder.RowCount--,"Gss_Issue",V.Local.fGssIssue)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.UI.Msgbox("Issued Amount > Sheets Used")
+				F.Intrinsic.Control.ExitSub
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+
+	'check to see if we have more than we have sheets
+	F.Intrinsic.Control.If(v.Local.fQty,<,V.Local.fIssue)
+		'we don't have enough qty on hand to do this job
+		F.Intrinsic.UI.CloseWaitDialog
+		F.Intrinsic.String.Build("Qty Issue: {0} > Qty Onhand: {1}",V.Local.fIssue,V.ODBC.Con!rstOnHand.FieldValFloat!QUANTITY,V.Local.sSql)
+		F.Intrinsic.UI.Msgbox(V.Local.sSQL,"Warning")
+		F.ODBC.Con!rstOnHand.Close
+		Gui.Ncell_Trumpf_Interface..Show
+		F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.Else
+		F.ODBC.Con!rstOnHand.Close
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Else
+	F.ODBC.Con!rstOnHand.Close
+	'we don't have this part in inventory
+	F.Intrinsic.UI.CloseWaitDialog
+	F.Intrinsic.UI.Msgbox("No Part found in inventory","Warning")
+	Gui.Ncell_Trumpf_Interface..Show
+	F.Intrinsic.Control.ExitSub
+F.Intrinsic.Control.EndIf
+
+'adjusting issue to issue all material and ajust for rounding.
+'F.Intrinsic.Control.If(V.Local.fQty,<,V.Local.fIssue)
+'	F.Intrinsic.Math.Sub(V.Local.fIssue,V.Local.fQty,V.Local.fIssue)
+'	F.Intrinsic.Control.DoUntil(V.Local.fIssue,=,0)
+'		F.Intrinsic.Control.If(V.DataTable.Post(V.Local.i).Gss_Issue!FieldValFloat,>,V.Local.fIssue)
+'			F.Intrinsic.Math.Sub(V.DataTable.Post(V.Local.i).Gss_Issue!FieldValFloat,V.Local.fIssue,V.DataTable.Post(V.Local.i).Gss_Issue!FieldValFloat)
+'			V.Local.fIssue.Set(0)
+'		F.Intrinsic.Control.EndIf
+'	F.Intrinsic.Math.Add(V.Local.i,1,V.Local.i)
+'	F.Intrinsic.Control.Loop
+'F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.CallSub(post)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdPost_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.cmdPost_Click.End
+
+Program.Sub.FilePath.Start
+F.Intrinsic.Control.SetErrorHandler("FilePath_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sFilePath.Declare(String)
+V.Local.sDATFile.Declare(String)
+V.Local.bExists.Declare(Boolean)
+V.Local.sReadPath.Declare(String)
+V.Local.iFor.Declare(Long)
+V.Local.sLine.Declare(String)
+V.Local.sBackup.Declare(String)
+V.Local.sHold.Declare(String)
+
+F.Intrinsic.Control.If(V.Args.DAT,=,"Ncell")
+	F.Intrinsic.String.Build("{0}\NCELL.dat",V.Caller.FilesDir,V.Local.sFilePath)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.File.Exists(V.Local.sFilePath,V.Local.bExists)
+F.Intrinsic.Control.If(V.Local.bExists,=,False)
+	F.Intrinsic.UI.Msgbox("File Save Path Not Found.")
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+F.Intrinsic.Control.Else
+	F.Intrinsic.File.File2String(V.Local.sFilePath,V.Local.sDATFile)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Split(V.Local.sDATFile,V.Ambient.NewLine,V.Local.sLine)
+F.Intrinsic.Control.For(V.Local.iFor,V.Local.sLine.LBound,V.Local.sLine.UBound,1)
+	F.Intrinsic.String.Split(V.Local.sLine(v.Local.iFor),"::",V.Local.sHold)
+	V.Local.sHold.RedimPreserve(0,1)
+	F.Intrinsic.Control.SelectCase(V.Local.sHold(0))
+		F.Intrinsic.Control.Case("READ")
+			V.Local.sReadPath.Set(V.Local.sHold(1))
+			F.Intrinsic.Control.ExitFor(V.Local.iFor)
+		F.Intrinsic.Control.Case("COMPLETE")
+			V.Local.sReadPath.Set(V.Local.sHold(1))
+			F.Intrinsic.Control.ExitFor(V.Local.iFor)
+	F.Intrinsic.Control.EndSelect
+F.Intrinsic.Control.Next(V.Local.iFor)
+
+F.Intrinsic.String.Concat(V.Local.sReadPath,"Backup",V.Local.sBackup)
+F.Intrinsic.File.Exists(V.Local.sBackup,V.Local.bExists)
+F.Intrinsic.Control.If(V.Local.bExists,=,False)
+	F.Intrinsic.File.CreateDir(V.Local.sBackup)
+F.Intrinsic.Control.EndIf
+
+'set global backkup for trump and ncell
+F.Intrinsic.Control.If(V.Args.DAT,=,"Ncell")
+	V.Global.sNBackup.Set(V.Local.sBackup)
+F.Intrinsic.Control.EndIf
+
+V.Global.sReadPath.Set(V.Local.sReadPath)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("FilePath_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.FilePath.End
+
+Program.Sub.FileList.Start
+F.Intrinsic.Control.SetErrorHandler("FileList_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sBckpPath.Declare(String)
+V.Local.bState.Declare(Boolean)
+V.Local.sFileList.Declare(String)
+V.Local.sBysoftFile.Declare(String)
+V.Local.sAttributes.Declare(String)
+V.Local.iFor.Declare(Long)
+V.Local.iTimer.Declare(Long)
+V.Local.sFileType.Declare(String)
+V.Local.iRet.Declare(Long)
+V.Local.sFullName.Declare(String)
+V.Local.sBackUp.Declare(String)
+V.Local.sMsg.Declare(String)
+V.Local.bContains.Declare(Boolean)
+
+' path to move processed files
+F.Intrinsic.String.Build("{0}Processed\",V.Global.sReadPath,V.Local.sBckpPath)
+F.Intrinsic.File.DirExists(V.Local.sBckpPath,V.Local.bState)
+F.Intrinsic.Control.If(V.Local.bState,=,False)
+	F.Intrinsic.File.CreateDir(V.Local.sBckpPath)
+F.Intrinsic.Control.EndIf
+
+' check for files in read path
+F.Intrinsic.String.Build("{0}\",V.Global.sReadPath,V.Global.sReadPath)
+F.Intrinsic.File.GetFileList(V.Global.sReadPath,0,V.Local.sFileList)
+F.Intrinsic.String.Split(V.Local.sFileList,":",V.Local.sBysoftFile)
+
+' if no files are found, alert user and exit
+F.Intrinsic.Control.If(V.Local.sBysoftFile.Trim,=,"")
+	F.Intrinsic.Control.ExitSub
+
+' could have multiple feedback files.  move file before reading.
+F.Intrinsic.Control.Else
+	V.Local.bState.Set(True)
+	F.Intrinsic.Control.For(V.Local.iFor,V.Local.sBysoftFile.LBound,V.Local.sBysoftFile.UBound,1)
+		' look for the xml file and make sure it is not locked
+		F.Intrinsic.String.Split(V.Local.sBysoftFile(v.Local.iFor),".",V.Local.sFileType)
+
+		F.Intrinsic.Control.If(V.Local.sFileType(v.Local.sFileType.UBound).UCase,=,"CSV")
+			F.Intrinsic.Control.DoUntil(V.Local.bState,=,False)
+				F.Intrinsic.File.IsFileLocked(V.Local.sBysoftFile(v.Local.iFor),V.Local.bState)
+				F.Intrinsic.UI.Sleep(1)
+				F.Intrinsic.Math.Add(V.Local.iTimer,1,V.Local.iTimer)
+				' give the file 10 seconds to be released, then alert user and move to next file.
+				F.Intrinsic.Control.If(V.Local.iTimer,=,11)
+					F.Intrinsic.String.Build("File {0} is in use.{1}Unable to read file.",V.Local.sBysoftFile(v.Local.iFor),V.Ambient.NewLine,V.Local.sMsg)
+					F.Intrinsic.UI.Msgbox(V.Local.sMsg)
+'					f.Intrinsic.Control.CallSub(ss_form1_unload)
+				F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.Loop
+
+			'make sure it is an Export file and not a Commit file
+			F.Intrinsic.String.IsInString(V.Local.sBysoftFile(v.Local.iFor),"Export",True,V.Local.bContains)
+			F.Intrinsic.Control.If(V.Local.bContains,=,True)
+				F.Intrinsic.String.Build("{0}{1}",V.Global.sReadPath,V.Local.sBysoftFile(v.Local.iFor),V.Local.sFullName)
+				'read ncell csv file
+				F.Intrinsic.Control.CallSub(Readncell,"ERPFILE",V.Local.sFullName)
+
+				' append file with processed date and time
+				F.Intrinsic.String.Build("{0}_{1}.bkp",V.Local.sFileType(0),V.Ambient.Now,V.Local.sBackUp)
+				f.Intrinsic.File.MakeFilenameFriendly(v.Local.sBackUp,v.Local.sBackUp)
+				F.Intrinsic.String.Build("{0}{1}",V.Local.sBckpPath,V.Local.sBackUp,V.Local.sBackUp)
+				F.Intrinsic.File.MoveFile(V.Local.sFullName,V.Local.sBackUp,V.Local.iRet)
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+
+		F.Intrinsic.Control.Label("NEXT")
+	F.Intrinsic.Control.Next(V.Local.iFor)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("FileList_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.FileList.End
+
+Program.Sub.Readncell.Start
+F.Intrinsic.Control.SetErrorHandler("Readncell_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sRow.Declare(String)
+V.Local.sLine.Declare(String)
+V.Local.iCount.Declare(Long)
+V.Local.sNestID.Declare(String)
+V.Local.sJob.Declare(String)
+V.Local.sStartTime.Declare(String)
+V.Local.sEndTime.Declare(String)
+V.Local.dStartTime.Declare(Date)
+V.Local.dEndTime.Declare(Date)
+V.Local.fHours.Declare(Float)
+V.Local.sSize.Declare(String)
+V.Local.fLength.Declare(Float)
+V.Local.fWidth.Declare(Float)
+V.Local.fQty.Declare(Float)
+V.Local.fTotalArea.Declare(Float)
+V.Local.fIssue.Declare(Float)
+V.Local.fArea.Declare(Float)
+V.Local.sMatSplit.Declare(String)
+V.Local.i.Declare(Long)
+V.Local.fSheets.Declare(Float)
+V.Local.iIndex.Declare(Long)
+V.Local.fTemp.Declare(Float)
+V.Local.iID.Declare(Long)
+V.Local.iDID.Declare(Long)
+V.Local.iMID.Declare(Long)
+v.Local.sSql.Declare(String)
+
+F.Intrinsic.Control.If(V.DataTable.MAT.Exists,=,True)
+	F.Data.DataTable.Close("MAT")
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.If(V.DataTable.WO.Exists,=,True)
+	F.Data.DataTable.Close("WO")
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.If(V.DataTable.NDROP.Exists,=,True)
+	F.Data.DataTable.Close("NDROP")
+F.Intrinsic.Control.EndIf
+
+'read csv to string to split
+F.Intrinsic.File.File2String(V.Args.ERPFILE,V.Local.sRow)
+'split for each line
+F.Intrinsic.String.Split(V.Local.sRow,V.Ambient.NewLine,V.Local.sRow)
+
+'loop though all rows
+F.Intrinsic.Control.For(V.Local.iCount,V.Local.sRow.LBound,V.Local.sRow.UBound,1)
+	F.Intrinsic.String.SplitCSV(V.Local.sRow(v.Local.iCount),V.Local.sLine)
+	V.Local.sLine.RedimPreserve(0,14)
+
+	'select statement
+	F.Intrinsic.Control.SelectCase(V.Local.sLine(0))
+
+		'Case N
+		'N, NestID, TotalSheets
+		F.Intrinsic.Control.Case("N")
+
+			'check to see if this is the first run or not
+			F.Intrinsic.Control.If(V.Local.sNestID,=,"")
+				V.Local.sNestID.Set(V.Local.sLine(1))
+
+				'delete from custom tables where NESTID = current one, this is because NCELL IManage reuses NESTIDs.
+				f.Intrinsic.String.Build("delete from GCG_3744_NCELL_WO where NESTID = '{0}'",v.Local.sNestID,v.Local.sSql)
+				f.ODBC.Connection!Con.Execute(v.Local.sSql)
+				f.Intrinsic.String.Build("delete from GCG_3744_NCELL_MAT where NESTID = '{0}'",v.Local.sNestID,v.Local.sSql)
+				f.ODBC.Connection!Con.Execute(v.Local.sSql)
+				f.Intrinsic.String.Build("delete from GCG_3744_NCELL_DROP where NESTID = '{0}'",v.Local.sNestID,v.Local.sSql)
+				f.ODBC.Connection!Con.Execute(v.Local.sSql)
+
+				V.Local.iID.Set(0)
+				V.Local.iDID.Set(0)
+				V.Local.iMID.Set(0)
+			F.Intrinsic.Control.EndIf
+
+			'set qty and make sure its not 0
+			F.Intrinsic.Control.If(V.Local.sLine(2).Long,>,0)
+				V.Local.fQty.Set(V.Local.sLine(2).Float)
+			F.Intrinsic.Control.Else
+				V.Local.fQty.Set(1.00)
+			F.Intrinsic.Control.EndIf
+
+			'reset reused variables for next nestid
+			V.Local.sJob.Set("")
+			V.Local.sJob.Redim(0,1)
+			V.Local.fHours.Set(0)
+			V.Local.sStartTime.Set("")
+			V.Local.sEndTime.Set("")
+			V.Local.sSize.Set("")
+			V.Local.fTotalArea.Set(0)
+
+		'Case M
+		'M, Material, WC, SheetID, SheetQty, SheetX, SheetY, SheetUsedX, SheetUsedY, Lot
+		F.Intrinsic.Control.Case("M")
+
+			'calculate the total area for the material
+			F.Intrinsic.Math.Evaluate("[v.local.sline(4).long]*([v.local.sline(5).float]*[v.local.sline(6).float])",V.Local.fTotalArea)
+'
+			F.Intrinsic.String.Split(V.Local.sLine(1).Trim,"_",V.Local.sMatSplit)
+			V.Local.sMatSplit.RedimPreserve(0,0)
+
+			F.Intrinsic.Control.If(V.DataTable.MAT.Exists,<>,True)
+				F.Data.DataTable.Create("MAT",True)
+				F.Data.DataTable.AddColumn("MAT","Nestid","String")
+				F.Data.DataTable.AddColumn("MAT","ID","Long")
+				F.Data.DataTable.AddColumn("MAT","Material","String")
+				F.Data.DataTable.AddColumn("MAT","Qty","Float")
+				F.Data.DataTable.AddColumn("MAT","Area","Float")
+				F.Data.DataTable.AddColumn("MAT","Closed","String")
+			F.Intrinsic.Control.EndIf
+
+			F.Intrinsic.Math.Add(V.Local.iMID,1,V.Local.iMID)
+
+			F.Data.DataTable.AddRow("MAT","Nestid",V.Local.sNestID,"Qty",V.Local.sLine(4).Float,"ID",V.Local.iMID,"Material",V.Local.sMatSplit,"Area",V.Local.fTotalArea,"Closed","N")
+
+		'Case P
+		'P, PartStart, PartEnd, PartStartDate, PartEndDate, PartTimeHr, Material, Part, PartOrder, Seq, WC, FinQty, PartShtAlloc, Lot,
+		F.Intrinsic.Control.Case("P")
+
+			F.Intrinsic.Control.If(V.DataTable.WO.Exists,<>,True)
+				F.Data.DataTable.Create("WO",True)
+				F.Data.DataTable.AddColumn("WO","Nestid","String")
+				F.Data.DataTable.AddColumn("WO","Tjob","String")
+				F.Data.DataTable.AddColumn("WO","Qty","Float")
+				F.Data.DataTable.AddColumn("WO","Time","Float")
+				F.Data.DataTable.AddColumn("WO","Employee","String")
+				F.Data.DataTable.AddColumn("WO","Material","String")
+				F.Data.DataTable.AddColumn("WO","Start_Time","String")
+				F.Data.DataTable.AddColumn("WO","End_Time","String")
+				F.Data.DataTable.AddColumn("WO","Post_Date","String")
+				F.Data.DataTable.AddColumn("WO","Post_Time","String")
+				F.Data.DataTable.AddColumn("WO","Serial","String")
+				F.Data.DataTable.AddColumn("WO","Bin","String")
+				F.Data.DataTable.AddColumn("WO","Lot","String")
+				F.Data.DataTable.AddColumn("WO","Job","String")
+				F.Data.DataTable.AddColumn("WO","Suffix","String")
+				F.Data.DataTable.AddColumn("WO","Sequence","String")
+				F.Data.DataTable.AddColumn("WO","Issue","Float")
+				F.Data.DataTable.AddColumn("WO","Gss_Issue","Float")
+				F.Data.DataTable.AddColumn("WO","ID","Long")
+			F.Intrinsic.Control.EndIf
+
+			F.Intrinsic.String.Split(V.Local.sLine(8),"-",V.Local.sJob)
+			V.Local.sJob.RedimPreserve(0,1)
+
+			'formatting start and end times
+			V.Local.dStartTime.Set(V.Local.sLine(1).TimeComp)
+			V.Local.dEndTime.Set(V.Local.sLine(2).TimeComp)
+
+			V.Local.fHours.Set(V.Local.sLine(5))
+
+			F.Intrinsic.String.Format(V.Local.dStartTime,"HHNN",V.Local.sStartTime)
+			F.Intrinsic.String.Format(V.Local.dEndTime,"HHNN",V.Local.sEndTime)
+
+			F.Intrinsic.Math.Add(V.Local.iID,1,V.Local.iID)
+			F.Data.DataTable.AddRow("WO","Nestid",V.Local.sNestID,"Tjob",V.Local.sLine(8),"Qty",V.Local.sLine(11).Float,"Time",V.Local.fHours,"Employee"," ","Material",V.Local.sMatSplit,"Start_Time",V.Local.sStartTime,"End_Time",V.Local.sEndTime,"Job",V.Local.sJob(0),"Suffix",V.Local.sJob(1),"Sequence",V.Local.sLine(9),"Issue",V.Local.sLine(12).Float,"ID",V.Local.iID)
+
+		'Case D
+		'D, Drop, Material, WC, SheetID, SheetQty, SheetX, SheetY, Lot
+		F.Intrinsic.Control.Case("D")
+
+			F.Intrinsic.String.Split(V.Local.sLine(1).Trim,"_",V.Local.sMatSplit)
+			V.Local.sMatSplit.RedimPreserve(0,0)
+			F.Intrinsic.Math.Round(V.Local.sLine(5).Float,2,V.Local.fLength)
+			F.Intrinsic.Math.Round(V.Local.sLine(6).Float,2,V.Local.fWidth)
+			F.Intrinsic.String.Build("{0}x{1}",V.Local.fLength,V.Local.fWidth,V.Local.sSize)
+
+			F.Intrinsic.Control.If(V.DataTable.NDrop.Exists,<>,True)
+				F.Data.DataTable.Create("NDrop",True)
+				F.Data.DataTable.AddColumn("NDrop","Nestid","String")
+				F.Data.DataTable.AddColumn("NDrop","ID","Long")
+				F.Data.DataTable.AddColumn("NDrop","Qty","Float")
+				F.Data.DataTable.AddColumn("NDrop","Material","String")
+				F.Data.DataTable.AddColumn("NDrop","Bin","String")
+				F.Data.DataTable.AddColumn("NDrop","Serial","String")
+				F.Data.DataTable.AddColumn("NDrop","Lot","String")
+				F.Data.DataTable.AddColumn("NDrop","Size","String")
+				F.Data.DataTable.AddColumn("NDrop","Drop_Issue","Float")
+			F.Intrinsic.Control.EndIf
+
+			F.Intrinsic.Math.Add(V.Local.iDID,1,V.Local.iDID)
+
+			F.Data.DataTable.AddRow("NDrop","Nestid",V.Local.sNestID,"ID",V.Local.iDID,"Qty",V.Local.sLine(4).Float,"Material",V.Local.sMatSplit,"Size",V.Local.sSize)
+
+	F.Intrinsic.Control.EndSelect
+
+F.Intrinsic.Control.Next(V.Local.iCount)
+
+F.Intrinsic.Control.If(V.DataTable.MAT.Exists,=,True)
+	F.Data.DataTable.SaveToDB("MAT","con","GCG_3744_NCELL_MAT","NESTID*!*ID",256,"NESTID@!@NESTID*!*ID@!@ID*!*MATERIAL@!@MATERIAL*!*QTY@!@QTY*!*AREA@!@AREA*!*CLOSED@!@CLOSED")
+	F.Data.DataTable.Close("MAT")
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.If(V.DataTable.WO.Exists,=,True)
+	F.Data.DataTable.SaveToDB("WO","con","GCG_3744_NCELL_WO","NESTID*!*ID",256,"NESTID@!@NESTID*!*ID@!@ID*!*EMPLOYEE@!@EMPLOYEE*!*TJOB@!@TJOB*!*START_TIME@!@START_TIME*!*END_TIME@!@END_TIME*!*POST_DATE@!@POST_DATE*!*POST_TIME@!@POST_TIME*!*TIME@!@TIME*!*MATERIAL@!@MATERIAL*!*QTY@!@QTY*!*SERIAL@!@SERIAL*!*JOB@!@JOB*!*SUFFIX@!@SUFFIX*!*SEQUENCE@!@SEQUENCE*!*BIN@!@BIN*!*LOT@!@LOT*!*ISSUE@!@ISSUE*!*GSS_ISSUE@!@GSS_ISSUE")
+	F.Data.DataTable.Close("WO")
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.If(V.DataTable.NDROP.Exists,=,True)
+	F.Data.DataTable.SaveToDB("NDROP","con","GCG_3744_NCELL_DROP","NESTID*!*ID",256,"NESTID@!@NESTID*!*ID@!@ID*!*MATERIAL@!@MATERIAL*!*QTY@!@QTY*!*LOT@!@LOT*!*BIN@!@BIN*!*SERIAL@!@SERIAL*!*SIZE@!@SIZE*!*DROP_ISSUE@!@DROP_ISSUE")
+	F.Data.DataTable.Close("NDROP")
+Function.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Readncell_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Readncell.End
+
+Program.Sub.cbo_Lot_Change.Start
+F.Intrinsic.Control.SetErrorHandler("cbo_Lot_Change_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sLot.Declare(String)
+V.Local.i.Declare(Long)
+V.Local.fDropPercent.Declare(Float)
+V.Local.fGssIssue.Declare(Float)
+V.Local.fDropArea.Declare(Float)
+V.Local.fIssuePercent.Declare(Float)
+V.Local.fTotalArea.Declare(Float)
+V.Local.sDrop.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.fQty.Declare(Float)
+V.Local.fMissingPercent.Declare(Float)
+V.Local.sSerial.Declare(String)
+V.Local.sFilter.Declare(String)
+V.Local.fTemp.Declare(Float)
+V.Local.sMsg.Declare(String)
+V.Local.sTemp.Declare(String)
+V.Local.fTSheets.Declare(Float)
+
+F.Intrinsic.Control.If(V.Screen.Form_Interface!cbo_Lot.Text,<>,"")
+	F.Data.DataTable.SetValue("Post",-1,"Lot",V.Screen.Form_Interface!cbo_Lot.Text)
+	F.Data.DataView.SetValue("WorkOrder","WorkOrder",-1,"Lot",V.Screen.Form_Interface!cbo_Lot.Text)
+	F.Intrinsic.String.Build("NestId = {0}",V.Screen.Form_Interface!cmboNNestID.Text,V.Local.sFilter)
+	F.Data.DataTable.Compute("Material","Sum(Qty)",V.Local.sFilter,V.Local.fQty)
+
+	F.Intrinsic.Control.If(V.Args.ControlName,=,"CBO_LOT")
+		V.Local.sLot.Set(V.Screen.Form_Interface!cbo_Lot.Text)
+		F.Intrinsic.String.Split(V.Local.sLot.Trim,"-",V.Local.sLot)
+		F.Intrinsic.Control.If(V.Local.sLot.UBound,>,0)
+			'puting slot back together to query the table
+			F.Intrinsic.Control.For(V.Local.i,0,V.Local.sLot.UBound,1)
+				F.Intrinsic.Control.If(V.Local.i,=,0)
+					V.Local.sTemp.Set(V.Local.sLot(V.Local.i))
+				F.Intrinsic.Control.Else
+					F.Intrinsic.String.Build("{0}-{1}",V.Local.sTemp,V.Local.sLot(V.Local.i),V.Local.sTemp)
+				F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.Next(V.Local.i)
+			F.Intrinsic.String.Build("Select Serial_Number, Quantity From V_Item_Master Where Part = '{0}' and Lot = '{1}' and Bin = 'TOWER'",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim,V.Local.sTemp,V.Local.sSql)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.String.Build("Select Serial_Number, Quantity From V_Item_Master Where Part = '{0}' and Lot = '{1}' and Bin = 'TOWER'",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim,V.Local.sLot(0),V.Local.sSql)
+		F.Intrinsic.Control.EndIf
+
+		F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+
+		F.Intrinsic.String.Build("Select Length, Width From V_INVENTORY_MST2 Where Part = '{0}'",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim,V.Local.sSql)
+		F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst2",V.Local.sSql)
+
+		Gui.Form_Interface.cmboSerial.ClearItems
+		F.Intrinsic.Control.If(V.Local.sLot.UBound,>,0)
+			Gui.Form_Interface.cmboSerial.Visible(True)
+			Gui.Form_Interface.lblSize.Visible(True)
+
+			Gui.Form_Interface.cmboSerial.AddItem("")
+			F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+				F.Intrinsic.Control.DoUntil(V.ODBC.Con!rst.EOF)
+					Gui.Form_Interface.cmboSerial.AddItem(V.ODBC.Con!rst.FieldValTrim!Serial_Number)
+					F.ODBC.Con!rst.MoveNext
+				F.Intrinsic.Control.Loop
+	'			Gui.Form_Interface.txt_Serial.Text(V.ODBC.Con!rst.FieldValLTrim!Serial_Number)
+			F.Intrinsic.Control.EndIf
+		Function.Intrinsic.Control.Else
+			Gui.Form_Interface.cmboSerial.Visible(False)
+			Gui.Form_Interface.lblSize.Visible(False)
+		Function.Intrinsic.Control.EndIf
+
+		F.ODBC.Con!rst.Close
+
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.If(V.Args.ControlName,=,"CMBOSERIAL")
+		F.Intrinsic.String.Build("Select Length, Width From V_INVENTORY_MST2 Where Part = '{0}'",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim,V.Local.sSql)
+		F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst2",V.Local.sSql)	
+	F.Intrinsic.Control.EndIf
+
+	V.Local.sSerial.Set(V.Screen.Form_Interface!cmboSerial.Text)
+	F.Data.DataView.SetValue("WorkOrder","WorkOrder",-1,"Serial",V.Local.sSerial.Trim)
+	F.Data.DataTable.SetValue("Post",-1,"Serial",V.Local.sSerial.Trim)
+
+	F.Intrinsic.Control.If(V.DataTable.Drop.Rowcount--,<>,-1)
+		F.Data.DataTable.SetValue("Drop",-1,"Serial",V.Local.sSerial.Trim)
+		F.Data.DataView.SetValue("Drops","Drops",-1,"Serial",V.Local.sSerial.Trim)
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.If(V.ODBC.Con!rst2.EOF,=,False)
+		F.Intrinsic.Math.Evaluate("([V.ODBC.Con!rst2.FieldValFloat!Length]*[V.ODBC.Con!rst2.FieldValFloat!Width])*[V.Local.fQty]",V.Local.fTotalArea)
+		F.Intrinsic.Control.If(V.Local.fTotalArea,=,0)
+			F.Intrinsic.String.Build("{0} does not have a Length and Width",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim,V.Local.sMsg)
+			F.Intrinsic.UI.Msgbox(V.Local.sMsg,"Warning")
+			F.Intrinsic.Control.ExitSub
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+
+	F.ODBC.Con!rst2.Close
+
+	F.Intrinsic.String.Build("Select Serial_Number, Quantity From V_Item_Master Where Part = '{0}' and Lot = '{1}' and Bin = 'TOWER' and Serial_Number = '{2}'",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim,V.Screen.Form_Interface!cbo_Lot.Text,V.Screen.Form_Interface!cmboSerial.Text,V.Local.sSql)
+	F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst",V.Local.sSql)
+
+	'setting dataview values to prebuilt datatable
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataView.Drops!Drops.RowCount--,1)
+		'calculating gss issue
+		V.Local.sDrop.Set(V.DataView.Drops!Drops(V.Local.i).Size!FieldValTrim)
+		F.Intrinsic.Control.If(V.Local.sDrop,=,"")
+			V.Local.fDropArea.Set(0)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.String.Split(V.Local.sDrop.UCase,"X",V.Local.sDrop)
+			F.Intrinsic.Math.Mult(V.Local.sDrop(0).Float,V.Local.sDrop(1).Float,V.Local.fTemp)
+			F.Intrinsic.Math.Evaluate("[V.Local.fTemp]/([V.Local.fTotalArea]/[V.Local.fQty])",V.Local.fDropPercent)
+			F.Intrinsic.Math.Round(V.Local.fDropPercent,4,V.Local.fDropPercent)
+			F.Data.DataTable.SetValue("Drop",V.Local.i,"Drop_Issue",V.Local.fDropPercent)
+			F.Data.DataView.SetValue("Drops","Drops",V.Local.i,"Drop_Issue",V.Local.fDropPercent)
+			F.Intrinsic.Math.Add(V.Local.fDropArea,V.Local.fTemp,V.Local.fDropArea)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Next(V.Local.i)
+
+'	F.Intrinsic.Math.Div(V.Local.fDropArea,V.Local.fTotalArea,V.Local.fDropPercent)
+	F.Intrinsic.Math.Sub(1,V.Local.fDropPercent,V.Local.fIssuePercent)
+'	V.Local.fMissingPercent.Set(V.Local.fIssuePercent)
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataView.WorkOrder!WorkOrder.RowCount--,1)
+'		F.Intrinsic.Math.Div(V.Local.fDropArea,V.Local.fTotalArea,V.Local.fDropPercent)
+'		F.Intrinsic.Math.Sub(1,V.Local.fDropPercent,V.Local.fIssuePercent)
+
+		F.Intrinsic.Control.If(V.Screen.Form_Interface!cmboSerial.Text,<>,"")
+			V.Local.sSerial.Set(V.Screen.Form_Interface!cmboSerial.Text)
+'			F.Intrinsic.String.Split(V.Local.sSerial.UCase,"X",V.Local.sSerial)
+'			F.Intrinsic.Math.Evaluate("([V.Local.sSerial(0)]*[V.Local.sSerial(1)])/[V.Local.fTotalArea]",V.Local.fIssuePercent)
+'			F.Intrinsic.Math.Sub(V.Local.fIssuePercent,V.Local.fDropPercent,V.Local.fIssuePercent)
+			F.Intrinsic.Math.Sub(V.ODBC.Con!rst.FieldValFloat!Quantity,V.Local.fDropPercent,V.Local.fIssuePercent)
+			V.Local.fTSheets.Set(V.Screen.Form_Interface!txt_TotalSheets.Text)
+			F.Intrinsic.Math.Div(V.Local.fIssuePercent,V.Local.fTSheets,V.Local.fIssuePercent)
+'			F.Intrinsic.Math.Sub(V.Local.fMissingPercent,V.Local.fIssuePercent,V.Local.fMissingPercent)	
+'			v.Local.fGssIssue.Set(v.Local.fIssuePercent)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.Math.Div(V.Local.fDropArea,V.Local.fTotalArea,V.Local.fDropPercent)
+			F.Intrinsic.Math.Sub(1,V.Local.fDropPercent,V.Local.fIssuePercent)		
+		F.Intrinsic.Control.EndIf
+
+		F.Intrinsic.Math.Evaluate("([V.Local.fIssuePercent]*[V.DataView.WorkOrder!WorkOrder(V.Local.i).Issue!FieldValFloat])",V.Local.fGssIssue)
+		F.Intrinsic.Math.Round(V.Local.fGssIssue,4,V.Local.fGssIssue)
+
+		F.Data.DataTable.SetValue("Post",V.Local.i,"Gss_Issue",V.Local.fGssIssue)
+		F.Data.DataView.SetValue("WorkOrder","WorkOrder",V.Local.i,"Gss_Issue",V.Local.fGssIssue)
+
+
+	F.Intrinsic.Control.Next(V.Local.i)
+
+	F.ODBC.Con!rst.Close
+
+	Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Issue","ReadOnly","False")
+	Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Issue","AllowEdit","True")
+	Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Size","ReadOnly","False")
+	Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Size","AllowEdit","True")
+F.Intrinsic.Control.Else
+	F.Data.DataTable.SetValue("Post",-1,"Gss_Issue",V.Ambient.DBNull)
+	F.Data.DataView.SetValue("WorkOrder","WorkOrder",-1,"Gss_Issue",V.Ambient.DBNull)
+	Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Issue","ReadOnly","True")
+	Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Issue","AllowEdit","False")
+	Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Size","ReadOnly","True")
+	Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Size","AllowEdit","False")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cbo_Lot_Change_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.cbo_Lot_Change.End
+
+Program.Sub.Populate_NestIdComboBox.Start
+F.Intrinsic.Control.SetErrorHandler("Populate_NestIdComboBox_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.i.Declare(Long)
+
+V.Local.sSql.Set("Select Distinct rtrim(NestId) as NID, rtrim(NestId) as NestID From GCG_3744_NCELL_MAT Where Closed = 'N' Order by NestID")
+F.Data.DataTable.CreateFromSQL("NestId","con",V.Local.sSql,True)
+F.Data.Dictionary.CreateFromSQL("Nest","con",V.Local.sSql)
+
+Gui.Form_Interface.cmboNNestID.AddAutoCompleteItem("Nest","Dictionary")
+
+Gui.Form_Interface.cmboNNestID.AddItem("")
+F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.NestID.RowCount--,1)
+	Gui.Form_Interface.cmboNNestID.AddItem(V.DataTable.NestId.NestId(V.Local.i)!FieldValTrim)
+F.Intrinsic.Control.Next(V.Local.i)
+
+F.Data.DataTable.Close("NestID")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Populate_NestIdComboBox_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Populate_NestIdComboBox.End
+
+Program.Sub.Get_Data.Start
+F.Intrinsic.Control.SetErrorHandler("Get_Data_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+
+V.Local.sSql.Set("Select * From GCG_3744_NCELL_MAT Where Closed <> 'Y' Order by NestId,ID")
+F.Data.DataTable.CreateFromSQL("Material","con",V.Local.sSql,True)
+
+V.Local.sSql.Set("Select * From GCG_3744_NCELL_WO Where Closed <> 'Y' Order by NestId,ID")
+F.Data.DataTable.CreateFromSQL("WorkOrder","con",V.Local.sSql,True)
+
+V.Local.sSql.Set("Select * From GCG_3744_NCELL_DROP Where Closed <> 'Y' Order by NestId,ID")
+F.Data.DataTable.CreateFromSQL("Drops","con",V.Local.sSql,True)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Get_Data_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Get_Data.End
+
+Program.Sub.SetGridViewProperties.Start
+F.Intrinsic.Control.SetErrorHandler("SetGridViewProperties_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+Gui.Form_Interface.GsGridControl1.AddGridviewFromDatatable("NCell","Post")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","NestID","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","ID","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Time","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Material","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Lot","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Start_Time","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","End_Time","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Post_Date","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Post_Time","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Job","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Suffix","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Sequence","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","MSEQUENCE","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Bin","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Serial","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("Ncell","Closed","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("Ncell","FlexID","Visible","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","TJob","Caption","JOB")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Gss_Issue","Caption","GSS ISSUE")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","TJob","HeaderBackColor","#d3d3d3")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Employee","HeaderBackColor","#d3d3d3")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Issue","HeaderBackColor","#d3d3d3")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Qty","HeaderBackColor","#d3d3d3")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Gss_Issue","HeaderBackColor","#d3d3d3")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","TJob","ReadOnly","True")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","TJob","AllowEdit","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Employee","ReadOnly","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Employee","AllowEdit","True")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Qty","ReadOnly","True")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Qty","AllowEdit","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Issue","ReadOnly","True")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Issue","AllowEdit","False")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Gss_Issue","ReadOnly","True")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Gss_Issue","AllowEdit","False")
+
+Gui.Form_Interface.GsGridControl1.MainView("NCell")
+
+Gui.Form_Interface.GsGridControl2.AddGridviewFromDatatable("Drop","Drop")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","NestID","Visible","False")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Qty","Visible","False")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","ID","Visible","False")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Closed","Visible","False")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","FlexID","Visible","False")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Material","Visible","False")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Lot","Visible","False")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Bin","Visible","False")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Serial","Visible","False")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Size","HeaderBackColor","#d3d3d3")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Drop_Issue","HeaderBackColor","#d3d3d3")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Drop_Issue","Caption","DROP ISSUE")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Size","ReadOnly","True")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Size","AllowEdit","False")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Drop_Issue","ReadOnly","True")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Drop_Issue","AllowEdit","False")
+
+Gui.Form_Interface.GsGridControl2.MainView("Drop")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("SetGridViewProperties_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.SetGridViewProperties.End
+
+Program.Sub.FlexSchedule.Start
+F.Intrinsic.Control.SetErrorHandler("FlexSchedule_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSQL.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sScheduleNumber.Declare(String)
+V.Local.iIncrement.Declare(Long)
+V.Local.sIncrement.Declare(String)
+V.Local.iCount.Declare(Long)
+V.Local.sJob.Declare(String)
+V.Local.sSuffix.Declare(String)
+V.Local.sSeq.Declare(String)
+V.Local.sWorkCenter.Declare(String)
+V.Local.sPart.Declare(String)
+V.Local.sLine.Declare(String)
+V.Local.sFiller.Declare(String)
+V.Local.sFileName.Declare(String)
+V.Local.sFiller2.Declare(String)
+V.Local.sMJob.Declare(String)
+V.Local.sMSuffix.Declare(String)
+V.Local.sMSeq.Declare(String)
+V.Local.sPrint.Declare(String)
+
+'uploading flex schedule
+
+f.ODBC.Connection!Con.GetID("V_JOB_CT_FLX_SCHD","SCHEDULE",TRUE,V.Local.sScheduleNumber)
+F.Intrinsic.String.Format(V.Local.sScheduleNumber,"000000",V.Local.sScheduleNumber)
+
+F.Intrinsic.Control.For(V.Local.iCount,0,V.DataTable.Post.RowCount--,1)
+	'Add increment
+	F.Intrinsic.Math.Add(V.Local.iIncrement,1,V.Local.iIncrement)
+	F.Intrinsic.String.Format(V.Local.iIncrement,"000000",V.Local.sIncrement)
+
+	V.Local.sJob.Set(V.DataTable.Post(V.Local.iCount).Job!FieldValTrim)
+	V.Local.sSuffix.Set(V.DataTable.Post(V.Local.iCount).Suffix!FieldValTrim)
+	V.Local.sMJob.Set(V.DataTable.Post(V.Local.iCount).Job!FieldValTrim)
+	V.Local.sMSuffix.Set(V.DataTable.Post(V.Local.iCount).Suffix!FieldValTrim)
+	V.Local.sSeq.Set(V.DataTable.Post(V.Local.iCount).Sequence!FieldValTrim)
+
+	'search for the material sequence
+	F.Intrinsic.String.Build("SELECT SEQ, PART FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQ < '{2}' ORDER BY SEQ ASC",V.Local.sMJob.Trim,V.Local.sMSuffix.Trim,V.Local.sSeq,V.Local.sSQL)
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSQL,V.Local.sMSeq)
+	F.Intrinsic.String.Split(V.Local.sMSeq,"*!*",V.Local.sMSeq)
+	V.Local.sMSeq.RedimPreserve(0,1)
+	V.Local.sPart.Set(V.Local.sMSeq(1))
+	V.Local.sMSeq.RedimPreserve(0,0)
+
+	'search for the work center, part and sequence
+	F.Intrinsic.String.Build("SELECT TOP 1 SEQ, PART AS WC FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQ > '{2}' AND LMO = 'L' ORDER BY SEQ ASC",V.Local.sJob.Trim,V.Local.sSuffix.Trim,V.Local.sSeq.Trim,V.Local.sSQL)
+	F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSQL,V.Local.sWorkCenter)
+	F.Intrinsic.String.Split(V.Local.sWorkCenter,"*!*",V.Local.sWorkCenter)
+	V.Local.sWorkCenter.RedimPreserve(0,1)
+	V.Local.sSeq.Set(V.Local.sWorkCenter(0))
+	V.Local.sWorkCenter.Set(V.Local.sWorkCenter(1))
+
+	'if wc is not BO then exit
+	F.Intrinsic.Control.If(V.Local.sWorkCenter.Left2,<>,"BO")
+		F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.EndIf
+
+	V.Local.sFiller.Set("000000999999")
+	V.Local.sFiller2.Set("000000999999")
+	'padd all of the paramaters to fit into the file
+	F.Intrinsic.String.RPad(V.Local.sScheduleNumber," ",9,V.Local.sScheduleNumber)
+	F.Intrinsic.String.RPad(V.Local.sIncrement," ",6,V.Local.sIncrement)
+	F.Intrinsic.String.RPad(V.Local.sMJob," ",6,V.Local.sMJob)
+	F.Intrinsic.String.RPad(V.Local.sMSuffix," ",3,V.Local.sMSuffix)
+	F.Intrinsic.String.RPad(V.Local.sMSeq," ",11,V.Local.sMSeq)
+
+	F.Intrinsic.String.RPad(V.Local.sJob," ",6,V.Local.sJob)
+	F.Intrinsic.String.RPad(V.Local.sSuffix," ",3,V.Local.sSuffix)
+	F.Intrinsic.String.RPad(V.Local.sSeq," ",6,V.Local.sSeq)
+	F.Intrinsic.String.RPad(V.Local.sFiller," ",37,V.Local.sFiller)
+	F.Intrinsic.String.RPad(V.Local.sWorkCenter," ",4,V.Local.sWorkCenter)
+	F.Intrinsic.String.RPad(V.Local.sPart," ",25,V.Local.sPart)
+	F.Intrinsic.String.RPad(V.Local.sFiller2," ",12,V.Local.sFiller2)
+	F.Intrinsic.String.Build("{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}{10}{11}{12}{13}",V.Local.sLine,V.Local.sScheduleNumber,V.Local.sIncrement,V.Local.sMJob,V.Local.sMSuffix,V.Local.sMSeq,V.Local.sJob,V.Local.sSuffix,V.Local.sSeq,V.Local.sFiller,V.Local.sWorkCenter,V.Local.sPart,V.Local.sFiller2,V.Ambient.NewLine,V.Local.sLine)
+
+F.Intrinsic.Control.Next(V.Local.iCount)
+
+'SCHED.txt that is read by UPLSCHED
+F.Intrinsic.String.Build("{0}\SCHED.TXT",V.Caller.FilesDir,V.Local.sFileName)
+
+F.Intrinsic.File.String2File(V.Local.sFileName,V.Local.sLine)
+'uploads schedule in append and screenless mode
+F.Global.General.CallWrapperSync(6000,"50!*!NS")
+
+F.Intrinsic.String.Left(V.Local.sScheduleNumber,6,V.Local.sScheduleNumber)
+'adds the flexid to the table for later use
+F.Intrinsic.String.Build("UPDATE GCG_3744_NCELL_WO SET FLEXID = '{0}' WHERE NESTID = '{1}' ",V.Local.sScheduleNumber,V.DataTable.Post(V.DataTable.Post.RowCount--).NestID!FieldValTrim,V.Local.sSQL)
+F.Data.DataView.SetValue("WorkOrder","WorkOrder",-1,"FlexID",V.Local.sScheduleNumber)
+F.Data.DataTable.SetValue("Post",-1,"FlexID",V.Local.sScheduleNumber)
+F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+'adds the flexid to the table for later use
+F.Intrinsic.String.Build("UPDATE GCG_3744_NCELL_DROP SET FLEXID = '{0}' WHERE NESTID = '{1}' ",V.Local.sScheduleNumber,V.DataTable.Post(V.DataTable.Post.RowCount--).NestID!FieldValTrim,V.Local.sSQL)
+F.Data.DataView.SetValue("Drops","Drops",-1,"FlexID",V.Local.sScheduleNumber)
+F.Data.DataTable.SetValue("Drop",-1,"FlexID",V.Local.sScheduleNumber)
+F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+
+F.Intrinsic.String.Build("UPDATE GCG_3744_NCELL_MAT SET FLEXID = '{0}' WHERE NESTID = '{1}' ",V.Local.sScheduleNumber,V.DataTable.Post(V.DataTable.Post.RowCount--).NestID!FieldValTrim,V.Local.sSQL)
+F.Data.DataView.SetValue("Material","Material",-1,"FlexID",V.Local.sScheduleNumber)
+F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+
+'Print flex schedule
+F.Intrinsic.String.Build("000000!*!999999!*!{0}!*!000!*!{0}!*!000!*!Y!*!Y",V.Local.sScheduleNumber,V.Local.sPrint)
+F.Global.General.CallWrapperSync(900300,V.Local.sPrint)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("FlexSchedule_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.FlexSchedule.End
+
+Program.Sub.Post.Start
+F.Intrinsic.Control.SetErrorHandler("Post_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sLine.Declare(String)
+V.Local.i.Declare(Long)
+V.Local.sIssue.Declare(String)
+V.Local.sFile.Declare(String)
+V.Local.sNow.Declare(String)
+V.Local.sBackup.Declare(String)
+V.Local.sLot.Declare(String)
+V.Local.sPadPart.Declare(String)
+V.Local.sPadLot.Declare(String)
+V.Local.sPadBin.Declare(String)
+V.Local.sPadSerial.Declare(String)
+V.Local.iRetID.Declare(Long)
+V.Local.sKey1.Declare(String)
+V.Local.sKey2.Declare(String)
+V.Local.bRet.Declare(Boolean)
+V.Local.iTemp.Declare(Long)
+V.Local.sSize.Declare(String)
+V.Local.sPart.Declare(String)
+V.Local.sRev.Declare(String)
+V.Local.sRecept.Declare(String)
+V.Local.sReceptLine.Declare(String)
+V.Local.iRptID.Declare(Long)
+V.Local.iBIRunID.Declare(Long)
+V.Local.iLogId.Declare(Long)
+V.Local.iRet.Declare(Long)
+V.Local.iCount.Declare(Long)
+V.Local.sSql.Declare(String)
+V.Local.sUpdateDate.Declare(String)
+V.Local.sTimeIn.Declare(String)
+V.Local.sTimeOut.Declare(String)
+V.Local.fPercentAmt.Declare(Float)
+V.Local.fPercent.Declare(Float)
+V.Local.sWC.Declare(String)
+V.Local.sRet.Declare(String)
+V.Local.sClose.Declare(String)
+V.Local.sQty.Declare(String)
+V.Local.fQty.Declare(Float)
+V.Local.sIssueLot.Declare(String)
+V.Local.sIssueSerial.Declare(String)
+V.Local.sDate.Declare(String)
+V.Local.sTime.Declare(String)
+V.Local.sTemp.Declare(String)
+V.Local.fIssue.Declare(Float)
+
+F.Intrinsic.UI.ChangeWaitStatus("Writing Issue File",30)
+
+F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.Post.RowCount--,1)
+	F.Intrinsic.String.Build("SELECT TOP 1 SEQ FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND LMO = 'M' ORDER BY SEQ ASC ",V.DataTable.Post(V.Local.i).Job!FieldValTrim,V.DataTable.Post(V.Local.i).Suffix!FieldValTrim,V.Local.sSql)
+	F.ODBC.Connection!Con.OpenLocalRecordsetRO("rstSeq",V.Local.sSQL)
+	F.Intrinsic.Control.If(V.ODBC.Con!rstSEQ.EOF,=,False)
+		F.Data.DataTable.SetValue("Post",V.Local.i,"MSequence",V.ODBC.Con!rstSEQ.FieldValTrim!SEQ)
+		F.Data.DataView.SetValue("WorkOrder","WorkOrder",V.Local.i,"MSequence",V.ODBC.Con!rstSEQ.FieldValTrim!SEQ)
+	F.Intrinsic.Control.EndIf
+	F.ODBC.Con!rstSeq.Close
+F.Intrinsic.Control.Next(v.Local.i)
+
+F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.Post.RowCount--,1)
+'	F.Intrinsic.Math.Mult(V.DataTable.Post(V.Local.i).Gss_Issue!FieldValFloat,10000,V.Local.sIssue)
+'	F.Intrinsic.Math.Round(V.DataTable.Post(V.Local.i).Gss_Issue!FieldValFloat,6,V.Local.sIssue)
+	V.Local.fIssue.Set(V.DataTable.Post(V.Local.i).Gss_Issue!FieldValFloat)
+	f.Intrinsic.String.Format(v.Local.fIssue,"0.0000",v.Local.sIssue)
+	V.Local.sIssueLot.Set(V.Screen.Form_Interface!cbo_Lot.Text)
+	V.Local.sIssueSerial.Set(V.Screen.Form_Interface!cmboSerial.Text)
+	F.Intrinsic.Control.If(V.Local.sLine.Length,=,0)
+		F.Intrinsic.String.Build("{0},,,{1},{2},{3},,{4},{5},{6},{7}",V.DataTable.Post(V.Local.i).Material!FieldValTrim,V.Local.sIssue,V.Local.sIssueLot.Trim,"TOWER",V.Local.sIssueSerial.Trim,V.DataTable.Post(V.Local.i).Job!FieldValTrim,V.DataTable.Post(V.Local.i).Suffix!FieldValTrim,V.DataTable.Post(V.Local.i).MSequence!FieldValTrim,V.Local.sLine)	
+	F.Intrinsic.Control.Else
+		F.Intrinsic.String.Build("{0}{9}{1},,,{2},{3},{4},,{5},{6},{7},{8}",V.Local.sLine,V.DataTable.Post(V.Local.i).Material!FieldValTrim,V.Local.sIssue,V.Local.sIssueLot.Trim,"TOWER",V.Local.sIssueSerial.Trim,V.DataTable.Post(V.Local.i).Job!FieldValTrim,V.DataTable.Post(V.Local.i).Suffix!FieldValTrim,V.DataTable.Post(V.Local.i).MSequence!FieldValTrim,V.Ambient.NewLine,V.Local.sLine)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Next(V.Local.i)
+
+'set -D to the end of the lot for the drop 
+'if lot is less than 14 characters then add -D	
+V.Local.sLot.Set(V.Screen.Form_Interface!cbo_Lot.Text)
+V.Local.sLot.Set(V.Local.sLot.Trim)
+F.Intrinsic.Control.If(V.Local.sLot.Length,<,14)
+	F.Intrinsic.String.Build("{0}-D",V.Local.sLot.Trim,V.Local.sLot)
+F.Intrinsic.Control.EndIf
+'setting dlot in datatable
+F.Data.DataTable.SetValue("Drop",-1,"Lot",V.Local.sLot)
+F.Data.DataView.SetValue("Drops","Drops",-1,"Lot",V.Local.sLot)
+
+F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.Drop.RowCount--,1)
+	V.Local.sTemp.Set(V.DataTable.Drop(V.Local.i).Size!FieldValTrim)
+	F.Intrinsic.Control.If(V.Local.sTemp.Length,>,0)
+		'get the link id for the from lot bin
+		F.Intrinsic.String.RPad(V.DataTable.Drop(V.Local.i).Material!FieldValTrim," ",20,V.Local.sPadPart)
+		F.Intrinsic.String.RPad(V.DataTable.Drop(V.Local.i).Lot!FieldValTrim," ",15,V.Local.sPadLot)
+		F.Intrinsic.String.RPad("REMNT"," ",6,V.Local.sPadBin)
+		F.Intrinsic.String.RPad(V.DataTable.Drop(V.Local.i).Serial!FieldValTrim," ",30,V.Local.sPadSerial)
+		F.Intrinsic.String.Build("{0}{1}{2}{3}{4}{5}",V.Local.sPadPart,"  ",V.Local.sPadLot,V.Local.sPadBin,"               ",V.Local.sPadSerial,V.Local.sKey1)
+		F.Global.DocumentControl.GetLinkID(V.Local.sKey1,31,V.Local.iRetID)
+		F.Intrinsic.Control.If(V.Local.iRetID,<>,-1)
+			F.Intrinsic.String.RPad(V.Local.sLot," ",15,V.Local.sLot)
+			F.Intrinsic.String.RPad(V.DataTable.Drop(V.Local.i).Size!FieldValTrim," ",30,V.Local.sSize)
+			F.Intrinsic.String.Build("{0}{1}{2}{3}{4}{5}",V.Local.sPadPart,"  ",V.Local.sLot,V.Local.sPadBin,"               ",V.Local.sSize,V.Local.sKey2)
+			F.Global.DocumentControl.CreateReference(V.Local.skey2,31,V.Local.iTemp)
+			F.Intrinsic.Control.If(V.Local.iTemp,<>,-1)
+				F.Global.DocumentControl.Copy(V.Local.iRetID,V.Local.iTemp,V.Local.bRet)
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Else
+		V.Local.i.Set(V.DataTable.Drop.RowCount)
+		F.Data.DataTable.DeleteRow("Drop")
+'		F.Intrinsic.Control.ExitFor
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.If(V.DataTable.Drop.Rowcount--,<>,-1)
+		'issue recepts instead
+		F.Intrinsic.String.RPad(V.DataTable.Drop(V.Local.i).Material!FieldValTrim," ",20,V.Local.sPart)
+		V.Local.sRev.Set(V.Local.sPart.Right3)
+		V.Local.sPart.Set(V.Local.sPart.Left17)
+		' Part, Rev, Loc, Qty, Description, Lot,Bin, Hea, Serial, I/R, Drop
+	'	F.Intrinsic.Math.Round(V.DataTable.Drop(V.Local.i).Drop_Issue!FieldValFloat,6,V.Local.sIssue)
+		F.Intrinsic.String.Build("{0},{1},{2},{3},,{4},{5},,{6},{7},{8},,,,",V.Local.sPart.Trim,V.Local.sRev.Trim,"",V.DataTable.Drop(V.Local.i).Drop_Issue!FieldValFloat,V.Local.sIssueLot.Trim,"TOWER",V.DataTable.Drop(V.Local.i).Serial!FieldValTrim,"I","N",V.Local.sReceptLine)
+		F.Intrinsic.Control.If(V.Local.sRecept,<>,"")
+			F.Intrinsic.String.Build("{0}{1}{2}",V.Local.sRecept,V.Ambient.NewLine,V.Local.sReceptLine,V.Local.sRecept)
+		F.Intrinsic.Control.Else
+			V.Local.sRecept.Set(V.Local.sReceptLine)
+		F.Intrinsic.Control.EndIf
+
+		F.Intrinsic.String.Build("{0},{1},{2},{3},,{4},{5},,{6},{7},{8},,,,",V.Local.sPart.Trim,V.Local.sRev.Trim,"",V.DataTable.Drop(V.Local.i).Drop_Issue!FieldValFloat,V.Local.sLot.Trim,"REMNT",V.DataTable.Drop(V.Local.i).Size!FieldValTrim,"R","N",V.Local.sReceptLine)
+		F.Intrinsic.String.Build("{0}{1}{2}",V.Local.sRecept,V.Ambient.NewLine,V.Local.sReceptLine,V.Local.sRecept)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Next(V.Local.i)
+
+F.Intrinsic.UI.ChangeWaitStatus("Issuing Material and Drops",60)
+
+F.Intrinsic.Control.If(V.Local.sLine.Trim,<>,"")
+	F.Intrinsic.String.Build("{0}\L{1}{2}MOPEN.txt",V.Caller.FilesDir,V.Caller.CompanyCode,V.Caller.Terminal,V.Local.sFile)
+	F.Intrinsic.File.String2File(V.Local.sFile,V.Local.sLine.Trim)
+
+	F.Intrinsic.String.StripCharacters(V.Ambient.Now,V.Local.sNow)
+	F.Intrinsic.String.Build("{0}\MATERIAL-{1}{2}{3}.Bkp",V.Global.sNBackup,V.Caller.CompanyCode,V.Caller.Terminal,V.Local.sNow,V.Local.sBackup)
+	F.Intrinsic.File.String2File(V.Local.sBackup,V.Local.sLine.Trim)
+	F.Intrinsic.String.Build("L{0}{1}MOPEN.txt",V.Caller.CompanyCode,V.Caller.Terminal,V.Local.sFile)
+	F.Global.General.CallWrapperSync(450100, v.Local.sFile)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.Local.sRecept.Trim,<>,"")
+	F.Intrinsic.String.Build("{0}\{1}StandIss.txt",V.Caller.FilesDir,V.Caller.CompanyCode,V.Local.sFile)
+	F.Intrinsic.File.String2File(V.Local.sFile,V.Local.sRecept)
+
+	F.Intrinsic.String.Build("{0}StandIss.txt",V.Caller.CompanyCode,V.Local.sFile)
+	F.Intrinsic.Task.LaunchGSSSync("WIR104","-C",V.Local.sFile)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Format(V.Ambient.Date,"MM/DD/YYYY",V.Local.sDate)
+F.Intrinsic.String.Format(V.Ambient.Time,"h:mm:ss",V.Local.sTime)
+
+F.Intrinsic.Control.If(V.DataTable.Drop.RowCount--,<>,-1)
+	F.Data.DataTable.SetValue("Post",-1,"Serial",V.Screen.Form_Interface!cmboSerial.Text)
+	F.Data.DataView.SetValue("WorkOrder","WorkOrder",-1,"Serial",V.Screen.Form_Interface!cmboSerial.Text)
+	F.Data.DataTable.SetValue("Post",-1,"Bin","TOWER")
+	F.Data.DataView.SetValue("WorkOrder","WorkOrder",-1,"Bin","TOWER")
+	F.Data.DataTable.SetValue("Drop",-1,"Serial",V.Screen.Form_Interface!cmboSerial.Text)
+	F.Data.DataView.SetValue("Drops","Drops",-1,"Serial",V.Screen.Form_Interface!cmboSerial.Text)
+	F.Data.DataTable.SetValue("Drop",-1,"Bin","REMNT")
+	F.Data.DataView.SetValue("Drops","Drops",-1,"Bin","REMNT")
+F.Intrinsic.Control.EndIf
+
+F.Data.DataTable.SetValue("Post",-1,"Post_Date",V.Local.sDate)
+F.Data.DataView.SetValue("WorkOrder","WorkOrder",-1,"Post_Date",V.Local.sDate)
+F.Data.DataTable.SetValue("Post",-1,"Post_Time",V.Local.sTime)
+F.Data.DataView.SetValue("WorkOrder","WorkOrder",-1,"Post_Time",V.Local.sTime)
+
+'F.Intrinsic.Control.If(V.DataTable.Drop.RowCount--,<>,-1)
+'	F.Global.BI.GetIDFromName("IV_3744_BintoBinlbl.rpt",V.Local.iRptID)
+'	F.Global.BI.GetRunID(V.Local.iBIRunID)
+'	F.Global.BI.StartLogging(V.Local.iBIRunID,V.Local.iRptID,0,"",V.Local.iLogID)
+'	F.Data.DataView.ToDataTable("Drops","Drops","Bin")
+'	F.Data.DataTable.AddColumn("Bin","BIRUNID","Long")
+'	F.Data.DataTable.AddColumn("BIN","User_ID","String")
+'	F.Data.DataTable.AddColumn("Bin","Inv_UM","String")
+'	F.Data.DataTable.AddColumn("Bin","Post_Date","Date")
+'	F.Data.DataTable.SetValue("Bin",-1,"BIRUNID",V.Local.iBIRunID)
+'	F.Data.DataTable.SetValue("Bin",-1,"User_ID",V.Caller.User)
+'	F.Data.DataTable.SetValue("Bin",-1,"Post_Date",V.Local.sDate.DateComp)
+'	F.Data.DataTable.SetValue("Bin",-1,"Inv_UM","EA")
+'	F.Data.DataTable.SetValue("Bin",-1,"Bin","REMNT")
+'	F.Data.DataTable.SaveToDB("Bin","con","GCG_3744_IV_BTB_XFER","",128,"BIRUNID@!@BIRUNID*!*MATERIAL@!@MATERIAL*!*BIN@!@BIN*!*Drop_Issue@!@Qty_On_Label*!*Post_Date@!@Lbl_Create_Date*!*Lot@!@Lot*!*Size@!@Size*!*Inv_Um@!@Inv_Um*!*User_ID@!@User_ID")
+'
+'	F.Global.BI.StopLogging(V.Local.iLogId)	
+'	F.Global.BI.RunReportPreProcessor(V.Local.iBIRunID,V.Local.iLogID,"","","",-1,True,"",-1,"",-1,"","",V.Local.iRet)
+'	F.Data.DataTable.Close("Bin")
+'
+'F.Intrinsic.Control.EndIf
+
+'lets loop through issue job and see if we have anything issued. if we do then close the sequence
+F.Intrinsic.Control.For(V.Local.iCount,0,V.DataTable.Post.RowCount--,1)
+	F.Intrinsic.String.Build("UPDATE JOB_OPERATIONS SET FLAG_CLOSED = 'Y' WHERE LMO = 'M' AND JOB = '{0}' AND SUFFIX = '{1}' AND SEQ = '{2}' ",V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Job!FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Suffix!FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).MSequence!FieldValTrim,V.Local.sSQL)
+	F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+F.Intrinsic.Control.Next(V.Local.iCount)
+
+V.Local.sLine.Set("")
+
+'job operation upload
+F.Intrinsic.String.Format(V.Ambient.Date,"YYDDMM",V.Local.sUpdateDate)
+
+F.Intrinsic.UI.ChangeWaitStatus("Writing Labor File",60)
+F.Intrinsic.Control.If(V.DataView.WorkOrder!WorkOrder.RowCount--,<>,0)
+	F.Intrinsic.Math.Div(25,V.DataView.WorkOrder!WorkOrder.RowCount--,V.Local.fPercentAmt)
+F.Intrinsic.Control.Else
+	V.Local.fPercentAmt.Set(25)
+F.Intrinsic.Control.EndIf
+V.Local.fPercent.Set(60)
+F.Intrinsic.Control.For(V.Local.iCount,0,V.DataView.WorkOrder!WorkOrder.RowCount--,1)
+	F.Intrinsic.Math.Add(V.Local.fPercent,V.Local.fPercentAmt,V.Local.fPercent)
+	F.Intrinsic.UI.ChangeWaitStatus("Writing Labor File",V.Local.fPercent)
+	'make sure to only do ones with info populated
+	F.Intrinsic.Control.If(V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Job!FieldValTrim,<>,"")
+
+		'get work center from sequence
+		F.Intrinsic.String.Build("SELECT PART FROM JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQ = '{2}' ",V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Job!FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Suffix!FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Sequence!FieldValTrim,V.Local.sSQL)
+		F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst",V.Local.sSQL)
+		F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+			V.Local.sWC.Set(V.ODBC.Con!rst.FieldValTrim!PART)
+		F.Intrinsic.Control.EndIf
+		F.ODBC.Con!rst.Close
+
+		'write labor detail line using JB0455
+		F.Intrinsic.String.Format(V.Ambient.Date,"MMDDYY",V.Local.sUpdateDate)
+
+		F.Intrinsic.String.Build("SELECT START_TIME, END_TIME FROM GCG_3744_NCELL_WO WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQUENCE = '{2}' ",V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Job!FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Suffix!FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Sequence!FieldValTrim,V.Local.sSQL)
+		F.ODBC.Connection!Con.OpenLocalRecordsetRO("rst",V.Local.sSQL)
+		F.Intrinsic.Control.If(V.ODBC.Con!rst.EOF,=,False)
+			V.Local.sTimeIn.Set(V.ODBC.Con!rst.FieldValTrim!START_TIME)
+			V.Local.sTimeOut.Set(V.ODBC.Con!rst.FieldValTrim!END_TIME)
+		F.Intrinsic.Control.EndIf
+		F.ODBC.Con!rst.Close
+
+		'Multiply qty by 10,000 to upload
+		F.Intrinsic.Math.Mult(V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Qty!FieldValFloat,10000,V.Local.fQty)
+		V.Local.sQty.Set(V.Local.fQty)
+
+		'checks to see if quantity is complete so that we can set close flag.
+		F.Intrinsic.String.Build("SELECT UNITS_OPEN, UNITS_COMPLETE FROM V_JOB_OPERATIONS WHERE JOB = '{0}' AND SUFFIX = '{1}' AND SEQ = '{2}' ",V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Job!FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Suffix!FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).MSequence!FieldValTrim,V.Local.sSQL)
+		F.ODBC.Connection!Con.ExecuteAndReturn(V.Local.sSQL,V.Local.sRet)
+		F.Intrinsic.String.Split(V.Local.sRet,"*!*",V.Local.sRet)
+		V.Local.sRet.RedimPreserve(0,1)
+
+		F.Intrinsic.Math.Sub(V.Local.sRet(0).Float,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Qty!FieldValFloat,V.Local.sRet(0))
+		F.Intrinsic.Control.If(V.Local.sRet(0).Float,<=,0)
+			V.Local.sClose.Set("Y")
+		F.Intrinsic.Control.Else
+			V.Local.sClose.Set("")
+		F.Intrinsic.Control.EndIf
+
+		'create line for upload
+		'date, employee, job, suffix, seq, workcenter, hours, closed, indirect, start time, finish time, rate type, good pieces, scrap, scrap code
+		F.Intrinsic.String.Build("{1}{2}{0}{3}{0}{4}{0}{5}{0}{6}{0}{7}{0}{8}{0}{9}{0}{10}{0}{11}{0}{12}{0}{13}{0}{14}{0}{15}{0}{16}{0}{17}",V.Ambient.Tab,V.Local.sLine,V.Local.sUpdateDate.Trim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Employee!FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Job!FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Suffix!FieldValTrim,V.DataView.WorkOrder!WorkOrder(V.Local.iCount).Sequence!FieldValTrim,V.Local.sWC.Trim,"0",V.Local.sClose,"D",V.Local.sTimeIn,V.Local.sTimeOut,"R",V.Local.fQty,"0","0",V.Ambient.NewLine,V.Local.sLine)
+
+	F.Intrinsic.Control.EndIf
+
+F.intrinsic.Control.Next(V.Local.iCount)
+
+F.Intrinsic.UI.ChangeWaitStatus("Updating Labor",90)
+'Load labor details
+F.Intrinsic.Control.If(V.Local.sLine.Trim,<>,"")
+	F.Intrinsic.String.Build("{0}\{1}{2}MOPEN.txt",V.Caller.FilesDir,V.Caller.CompanyCode,V.Caller.Terminal,V.Local.sFile)
+	F.Intrinsic.File.String2File(V.Local.sFile,V.Local.sLine)
+	F.Intrinsic.String.Build("{0}\LABOR-{1}{2}{3}.Bkp",V.Global.sNBackup,V.Caller.CompanyCode,V.Caller.Terminal,V.Local.sNow,V.Local.sBackup)
+	F.Intrinsic.File.String2File(V.Local.sBackup,V.Local.sLine)
+	F.Intrinsic.String.Build("{1}{2}MOPEN.txt",V.Ambient.DblQuote,V.Caller.CompanyCode,V.Caller.Terminal,V.Local.sFile)
+	F.Intrinsic.Task.LaunchGSSSync("JB0455","-C",V.Local.sFile)
+F.Intrinsic.Control.EndIf
+
+'update all closed flags to closed
+F.Intrinsic.String.Build("UPDATE GCG_3744_NCELL_MAT SET CLOSED = 'Y' WHERE NESTID = '{0}' ",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).NestID!FieldValTrim,V.Local.sSQL)
+F.Data.DataTable.SetValue("Material",-1,"Closed","Y")
+F.Data.DataView.SetValue("Material","Material",-1,"Closed","Y")
+F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+F.Intrinsic.String.Build("UPDATE GCG_3744_NCELL_WO SET CLOSED = 'Y' WHERE NESTID = '{0}' ",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).NestID!FieldValTrim,V.Local.sSQL)
+F.Data.DataTable.SetValue("Post",-1,"Closed","Y")
+F.Data.DataView.SetValue("WorkOrder","WorkOrder",-1,"Closed","Y")
+F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+F.Intrinsic.String.Build("UPDATE GCG_3744_NCELL_DROP SET CLOSED = 'Y' WHERE NESTID = '{0}' ",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).NestID!FieldValTrim,V.Local.sSQL)
+F.Data.DataTable.SetValue("Drop",-1,"Closed","Y")
+F.Data.DataView.SetValue("Drops","Drops",-1,"Closed","Y")
+F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+
+F.Intrinsic.UI.ChangeWaitStatus("Creating Flex Schedule",90)
+F.Intrinsic.Control.CallSub(Flexschedule)
+F.Intrinsic.UI.ChangeWaitStatus("Printing Flex Schedule",100)
+
+Gui.Form_Interface.cmboNNestID.RemoveItem(V.Screen.Form_Interface!cmboNNestID.ListIndex)
+
+F.Intrinsic.Control.If(V.DataTable.Post.RowCount--,<>,-1)
+	F.Data.DataTable.SaveToDB("Post","con","GCG_3744_NCELL_WO","NESTID*!*ID",256,"NESTID@!@NESTID*!*ID@!@ID*!*EMPLOYEE@!@EMPLOYEE*!*TJOB@!@TJOB*!*START_TIME@!@START_TIME*!*END_TIME@!@END_TIME*!*POST_DATE@!@POST_DATE*!*POST_TIME@!@POST_TIME*!*TIME@!@TIME*!*MATERIAL@!@MATERIAL*!*QTY@!@QTY*!*SERIAL@!@SERIAL*!*JOB@!@JOB*!*SUFFIX@!@SUFFIX*!*SEQUENCE@!@SEQUENCE*!*MSEQUENCE@!@MSEQUENCE*!*BIN@!@BIN*!*LOT@!@LOT*!*ISSUE@!@ISSUE*!*GSS_ISSUE@!@GSS_ISSUE*!*CLOSED@!@CLOSED")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.Drop.RowCount--,<>,-1)
+	F.Data.DataTable.SaveToDB("DROP","con","GCG_3744_NCELL_DROP","NESTID*!*ID",256,"NESTID@!@NESTID*!*ID@!@ID*!*MATERIAL@!@MATERIAL*!*QTY@!@QTY*!*LOT@!@LOT*!*BIN@!@BIN*!*SERIAL@!@SERIAL*!*SIZE@!@SIZE*!*DROP_ISSUE@!@DROP_ISSUE*!*CLOSED@!@CLOSED")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.Material.RowCount--,<>,-1)
+	F.Data.DataTable.SaveToDB("Material","con","GCG_3744_NCELL_MAT","NESTID*!*ID",256,"NESTID@!@NESTID*!*ID@!@ID*!*MATERIAL@!@MATERIAL*!*QTY@!@QTY*!*AREA@!@AREA*!*CLOSED@!@CLOSED")
+F.Intrinsic.Control.EndIf
+
+F.Data.DataTable.DeleteRow("Post")
+F.Data.DataTable.DeleteRow("Drop")
+
+Gui.Form_Interface.cbo_Lot.ClearItems
+Gui.Form_Interface.txt_Material.Text("")
+Gui.Form_Interface.cmboSerial.Text("")
+Gui.Form_Interface.txt_TotalSheets.Text("")
+
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Issue","ReadOnly","True")
+Gui.Form_Interface.GsGridControl1.SetColumnProperty("NCell","Issue","AllowEdit","False")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Size","ReadOnly","True")
+Gui.Form_Interface.GsGridControl2.SetColumnProperty("Drop","Size","AllowEdit","False")
+
+F.Intrinsic.UI.CloseWaitDialog
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Post_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Post.End
+
+Program.Sub.PopulateQtyGrid.Start
+F.Intrinsic.Control.SetErrorHandler("PopulateQtyGrid_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sPart.Declare(String)
+V.Local.sSql.Declare(String)
+
+'Load Lot records for Selected part
+F.Intrinsic.Control.If(V.DataTable.Part.Exists,=,True)
+	F.Data.DataTable.Close("Part")
+F.Intrinsic.Control.EndIf
+
+V.Local.sPart.Set(V.Screen.Form_Interface!txt_Material.Text)
+F.Intrinsic.String.Build("select IF(Bin = 'TOWER',1,2) as Row, Bin,Lot,Serial_Number,Quantity from v_ITEM_MASTER where Part = '{0}' Order by Row,Bin",V.Local.sPart.PSQLFriendly,V.Local.sSql)
+F.Data.DataTable.CreateFromSQL("Part","con",V.Local.sSql,True)
+Gui.Form_Interface.GsGridControl3.AddGridviewFromDatatable("Part","Part")
+Gui.Form_Interface.GsGridControl3.SetColumnProperty("Part","Row","Visible","False")
+Gui.Form_Interface.GsGridControl3.SetColumnProperty("Part","Bin","HeaderBackColor","#d3d3d3")
+Gui.Form_Interface.GsGridControl3.SetColumnProperty("Part","Lot","HeaderBackColor","#d3d3d3")
+Gui.Form_Interface.GsGridControl3.SetColumnProperty("Part","Serial_Number","HeaderBackColor","#d3d3d3")
+Gui.Form_Interface.GsGridControl3.SetColumnProperty("Part","Quantity","HeaderBackColor","#d3d3d3")
+Gui.Form_Interface.GsGridControl3.SetGridviewProperty("Part","ReadOnly","True")
+Gui.Form_Interface.GsGridControl3.SetGridviewProperty("Part","Editable","False")
+
+Gui.Form_Interface.GsGridControl3.MainView("Part")
+
+F.Intrinsic.Control.CallSub(populate_lotcombobox)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("PopulateQtyGrid_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.PopulateQtyGrid.End
+
+Program.Sub.Populate_LotComboBox.Start
+F.Intrinsic.Control.SetErrorHandler("Populate_LotComboBox_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.i.Declare(Long)
+V.Local.sSql.Declare(String)
+
+'getting a list of lot
+F.Intrinsic.String.Build("SELECT DISTINCT Lot as LID, LOT FROM V_ITEM_MASTER WHERE PART = '{0}' AND QUANTITY > 0 and BIN = 'TOWER'",V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim,V.Local.sSQL)
+F.Data.Dictionary.CreateFromSQL("Lot","con",V.Local.sSql)
+
+Gui.Form_Interface.cbo_Lot.ClearItems
+Gui.Form_Interface.cbo_Lot.AddItem("")
+Gui.Form_Interface.cbo_Lot.AddItems("Dictionary","Lot")
+
+F.Data.Dictionary.Close("Lot")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Populate_LotComboBox_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Populate_LotComboBox.End
+
+Program.Sub.GsGridControl2_RowCellClick.Start
+F.Intrinsic.Control.SetErrorHandler("GsGridControl2_RowCellClick_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.iX.Declare(Long)
+V.Local.iY.Declare(Long)
+
+F.Intrinsic.API.GetMousePosition(V.Local.iX,v.Local.iY)
+
+Gui.Form_Interface..ContextMenuShow("Grid2",V.Local.iX,V.Local.iY)
+
+V.Global.iIndex.Set(V.Args.RowIndex)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("GsGridControl2_RowCellClick_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.GsGridControl2_RowCellClick.End
+
+Program.Sub.ContextMenuItemSelection.Start
+F.Intrinsic.Control.SetErrorHandler("ContextMenuItemSelection_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.iID.Declare(Long)
+V.Local.sNestId.Declare(String)
+V.Local.iIndex.Declare(Long)
+
+F.Intrinsic.Control.If(V.Args.ItemName,=,"ADD")
+	V.Local.iID.Set(V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).ID!FieldValLong)
+	F.Intrinsic.Math.Add(V.Local.iID,1,V.Local.iID)
+	F.Data.DataTable.AddRow("Drop","NestID",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).NestID!FieldValLong,"ID",V.Local.iID,"MATERIAL",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).Material!FieldValTrim,"Qty",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).Qty!FieldValFloat,"Lot",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).Lot!FieldValTrim,"Bin",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).Bin!FieldValTrim,"Serial",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).Serial!FieldValTrim,"Closed","N")
+	F.Data.DataTable.AddRow("Drops","NestID",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).NestID!FieldValLong,"ID",V.Local.iID,"MATERIAL",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).Material!FieldValTrim,"Qty",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).Qty!FieldValFloat,"Lot",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).Lot!FieldValTrim,"Bin",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).Bin!FieldValTrim,"Serial",V.DataView.Drops!Drops(V.DataView.Drops!Drops.RowCount--).Serial!FieldValTrim,"Closed","N")
+F.Intrinsic.Control.Else
+	F.Data.DataTable.DeleteRow("Drop",V.Global.iIndex)
+	V.Local.iIndex.Set(V.DataView.Drops!Drops(V.Global.iIndex).DataTableIndex)
+	F.Data.DataTable.DeleteRow("Drops",V.Local.iIndex)
+	F.Intrinsic.Control.CallSub(cbo_lot_change,"ControlName","CBO_LOT")
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("ContextMenuItemSelection_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.ContextMenuItemSelection.End
+
+Program.Sub.cmboNNestID_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmboNNestID_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.sFilter.Declare(String)
+V.Local.sMaterial.Declare(String)
+V.Local.fQty.Declare(Float)
+V.Local.i.Declare(Long)
+
+F.Intrinsic.Control.If(V.Screen.Form_Interface!cmboNNestID.Text,<>,"")
+	'seting lot to ' '
+	Gui.Form_Interface.cbo_Lot.Text("")
+
+	'clearing lot combo box
+	Gui.Form_Interface.cbo_Lot.ClearItems
+
+	Gui.Form_Interface.cbo_Lot.SetFocus
+
+	'building dataview
+	F.Intrinsic.String.Build("NestId = {0}",V.Screen.Form_Interface!cmboNNestID.Text,V.Local.sFilter)
+	F.Data.DataTable.Compute("Material","Sum(Qty)",V.Local.sFilter,V.Local.fQty)
+
+	Gui.Form_Interface.txt_TotalSheets.Text(V.Local.fQty)
+
+	F.Intrinsic.Control.If(V.DataView.Material!Material.Exists,=,True)
+		F.Data.DataView.Close("Material","Material")
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.If(V.DataView.WorkOrder!WorkOrder.Exists,=,True)
+		F.Data.DataView.Close("WorkOrder","WorkOrder")
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.If(V.DataView.Drops!Drops.Exists,=,True)
+		F.Data.DataView.Close("Drops","Drops")
+	F.Intrinsic.Control.EndIf
+
+	F.Data.DataView.Create("Material","Material",22,V.Local.sFilter,"NestID")
+	F.Data.DataView.Create("WorkOrder","WorkOrder",22,V.Local.sFilter,"NestID")
+	F.Data.DataView.Create("Drops","Drops",22,V.Local.sFilter,"NestID")
+
+	F.Intrinsic.Control.If(V.DataView.Drops!Drops.RowCount--,=,-1)
+		F.Data.DataTable.AddRow("Drops","NestID",V.Screen.Form_Interface!cmboNNestID.Text,"ID",1,"Material",V.Screen.Form_Interface!txt_Material.Text,"Closed","N","Qty",1)
+	F.Intrinsic.Control.EndIf
+
+	'clearing datatable that is set to the grid
+	F.Data.DataTable.DeleteRow("Post")
+	F.Data.DataTable.DeleteRow("Drop")
+
+	'seeing if dataview isn't empty
+	F.Intrinsic.Control.If(V.DataView.WorkOrder!WorkOrder.RowCount--,<>,-1)
+		'setting martial to text box
+		Gui.Form_Interface.txt_Material.Text(V.DataView.WorkOrder!WorkOrder(V.DataView.WorkOrder!WorkOrder.RowCount--).Material!FieldValTrim)
+
+		'setting dataview values to prebuilt datatable
+		F.Intrinsic.Control.For(V.Local.i,0,V.DataView.WorkOrder!WorkOrder.RowCount--,1)
+			F.Data.DataTable.AddRow("Post","Nestid",V.DataView.WorkOrder!WorkOrder(V.Local.i).NestID!FieldValTrim,"Tjob",V.DataView.WorkOrder!WorkOrder(V.Local.i).Tjob!FieldValTrim,"Qty",V.DataView.WorkOrder!WorkOrder(V.Local.i).qty!FieldValFloat,"Time",V.DataView.WorkOrder!WorkOrder(V.Local.i).time!FieldValTrim,"Employee",V.DataView.WorkOrder!WorkOrder(V.Local.i).employee!FieldValTrim,"Material",V.DataView.WorkOrder!WorkOrder(V.Local.i).Material!FieldValTrim,"Closed","N","Start_Time",V.DataView.WorkOrder!WorkOrder(V.Local.i).Start_Time!FieldValTrim,"End_Time",V.DataView.WorkOrder!WorkOrder(V.Local.i).End_Time!FieldValTrim,"Job",V.DataView.WorkOrder!WorkOrder(V.Local.i).Job!FieldValTrim,"Suffix",V.DataView.WorkOrder!WorkOrder(V.Local.i).Suffix!FieldValTrim,"Sequence",V.DataView.WorkOrder!WorkOrder(V.Local.i).Sequence!FieldValTrim,"Issue",V.DataView.WorkOrder!WorkOrder(V.Local.i).Issue!FieldValTrim,"ID",V.DataView.WorkOrder!WorkOrder(V.Local.i).ID!FieldValTrim)
+		F.Intrinsic.Control.Next(V.Local.i)
+
+		F.Intrinsic.Control.For(V.Local.i,0,V.DataView.Drops!Drops.RowCount--,1)
+			F.Data.DataTable.AddRow("Drop","Nestid",V.DataView.Drops!Drops(V.Local.i).NestID!FieldValTrim,"Material",V.DataView.Drops!Drops(V.Local.i).Material!FieldValTrim,"Qty",V.DataView.Drops!Drops(V.Local.i).Qty!FieldValFloat,"Lot",V.DataView.Drops!Drops(V.Local.i).LOT!FieldValTrim,"BIN",V.DataView.Drops!Drops(V.Local.i).Bin!FieldValTrim,"Serial",V.DataView.Drops!Drops(V.Local.i).Serial!FieldValTrim,"Size",V.DataView.Drops!Drops(V.Local.i).Size!FieldValTrim,"Closed","N","ID",V.DataView.Drops!Drops(V.Local.i).ID!FieldValTrim)
+		F.Intrinsic.Control.Next(V.Local.i)
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.CallSub(populateqtygrid)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmboNNestID_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(form_interface_unload)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.cmboNNestID_Click.End
+
+Program.Sub.cmboNNestID_LostFocus.Start
+F.Intrinsic.Control.SetErrorHandler("cmboNNestID_LostFocus_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+F.Intrinsic.Control.If(V.Screen.Form_Interface!cmboNNestID.Text,<>,"")
+	F.Intrinsic.Control.CallSub(cmbonnestid_click)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmboNNestID_LostFocus_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.cmboNNestID_LostFocus.End
+
+Program.Sub.txt_TotalSheets_LostFocus.Start
+F.Intrinsic.Control.SetErrorHandler("txt_TotalSheets_LostFocus_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.fOldTotalSheets.Declare(Float)
+V.Local.fNewTotalSheets.Declare(Float)
+V.Local.sFilter.Declare(String)
+V.Local.fDifference.Declare(Float)
+V.Local.fIssue.Declare(Float)
+V.Local.i.Declare(Long)
+V.Local.iIndex.Declare(Long)
+V.Local.sSql.Declare(String)
+V.Local.bRet.Declare(Boolean,False)
+
+'getting old qty amount
+F.Intrinsic.String.Build("NestID = {0}",V.Screen.Form_Interface!cmboNNestID.Text,V.Local.sFilter)
+F.Data.DataTable.Compute("Material","sum(Qty)",V.Local.sFilter,V.Local.fOldTotalSheets)
+F.Data.DataTable.Compute("Workorder","sum(Issue)",V.Local.sFilter,V.Local.fIssue)
+
+V.Local.fNewTotalSheets.Set(V.Screen.Form_Interface!txt_TotalSheets.Text)
+
+'checking if issue is less than totalsheets 
+'doing this for the rare occasion when total sheets from ncell is higher than the issues.
+F.Intrinsic.Control.If(V.Local.fOldTotalSheets,>,V.Local.fIssue)
+	V.Local.bRet.Set(True)
+F.Intrinsic.Control.EndIf
+
+'making sure the qty was changed
+F.Intrinsic.Control.If(V.Local.fOldTotalSheets,<>,V.Local.fNewTotalSheets)
+	F.Intrinsic.Math.Div(V.Local.fNewTotalSheets,V.Local.fOldTotalSheets,V.Local.fDifference)
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataView.WorkOrder!WorkOrder.RowCount--,1)
+		F.Intrinsic.Control.If(V.Local.bRet,=,False)
+			F.Intrinsic.Math.Mult(V.Local.fDifference,V.DataView.WorkOrder!WorkOrder(V.Local.i).Issue!FieldValFloat,V.Local.fIssue)
+			F.Data.DataTable.SetValue("Post",V.Local.i,"Issue",V.Local.fIssue)
+			F.Data.DataView.SetValue("WorkOrder","WorkOrder",V.Local.i,"Issue",V.Local.fIssue)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Next(v.Local.i)
+F.Intrinsic.Control.EndIf
+
+'getting the difference
+F.Intrinsic.Math.Sub(V.Local.fOldTotalSheets,V.Local.fNewTotalSheets,V.Local.fDifference)
+'seeing if qty is less or more
+F.Intrinsic.Control.If(V.Local.fDifference,>,0)
+	'removing qty from material datatable
+	F.Intrinsic.Control.DoUntil(V.Local.fDifference,=,0)
+		F.Intrinsic.Control.If(V.DataView.Material!Material(V.DataView.Material!Material.RowCount--).Qty!FieldValFloat,>,V.Local.fDifference)
+			F.Intrinsic.Math.Sub(V.DataView.Material!Material(V.DataView.Material!Material.RowCount--).Qty!FieldValFloat,V.Local.fDifference,V.Local.fNewTotalSheets)
+			F.Data.DataView.SetValue("Material","Material",V.DataView.Material!Material.RowCount--,"Qty",V.Local.fNewTotalSheets)
+			F.Intrinsic.String.Build("Update GCG_3744_NCELL_MAT Set Qty = {2} Where NestID = {0} and ID = {1}",V.Screen.Form_Interface!cmboNNestID.Text,V.DataView.Material!Material(V.DataView.Material!Material.RowCount--).ID!FieldValLong,V.DataView.Material!Material(V.DataView.Material!Material.RowCount--).Qty!FieldValFloat,V.Local.sSql)
+			F.ODBC.Connection!Con.Execute(V.Local.sSql)
+			V.Local.fDifference.Set(0)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.Math.Sub(V.DataView.Material!Material(V.DataView.Material!Material.RowCount--).Qty!FieldValFloat,V.Local.fDifference,V.Local.fDifference)
+			V.Local.iIndex.Set(V.DataView.Material!Material(V.DataView.Material!Material.RowCount--).DataTableIndex)
+			F.Intrinsic.String.Build("Delete From GCG_3744_NCELL_MAT Where NestID = {0} and ID = {1}",V.Screen.Form_Interface!cmboNNestID.Text,V.DataView.Material!Material(V.DataView.Material!Material.RowCount--).ID!FieldValLong,V.Local.sSql)
+			F.ODBC.Connection!Con.Execute(V.Local.sSql)
+			F.Data.DataTable.DeleteRow("Material",V.Local.iIndex)
+
+			F.Intrinsic.Control.If(V.Local.fDifference,<,0)
+				F.Intrinsic.Math.Mult(V.Local.fDifference,-1,V.Local.fDifference)
+			F.Intrinsic.Control.EndIf
+
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Loop
+F.Intrinsic.Control.Else
+	'adding the sheets to the last record in material datatable for the material being looked at
+	F.Intrinsic.Math.Sub(V.Local.fNewTotalSheets,V.Local.fOldTotalSheets,V.Local.fDifference)
+	F.Intrinsic.Math.Add(V.DataView.Material!Material(V.DataView.Material!Material.RowCount--).Qty!FieldValFloat,V.Local.fDifference,V.Local.fNewTotalSheets)
+	F.Data.DataView.SetValue("Material","Material",V.DataView.Material!Material.RowCount--,"Qty",V.Local.fNewTotalSheets)
+	F.Intrinsic.String.Build("Update GCG_3744_NCELL_MAT Set Qty = {2} Where NestID = {0} and ID = {1}",V.Screen.Form_Interface!cmboNNestID.Text,V.DataView.Material!Material(V.DataView.Material!Material.RowCount--).ID!FieldValLong,V.DataView.Material!Material(V.DataView.Material!Material.RowCount--).Qty!FieldValFloat,V.Local.sSql)
+	F.ODBC.Connection!Con.Execute(V.Local.sSql)
+F.Intrinsic.Control.EndIf
+
+'calling cbo lot change sub to recaculate gss issue
+F.Intrinsic.Control.CallSub(cbo_lot_change)
+
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("txt_TotalSheets_LostFocus_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_NCell_Interface.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.txt_TotalSheets_LostFocus.End
+
+Program.Sub.cmd_GetNests_Click.Start
+v.Local.iPID.Declare(long)
+
+'refresh by calling iteslf.
+f.Global.General.CallAsyncGAS(v.Caller.scriptfile,v.Local.iPID)
+f.Intrinsic.Control.End
+
+Program.Sub.cmd_GetNests_Click.End
+
+Program.Sub.cmdBinXFer_Click.Start
+v.Local.sParams.Declare(String)
+f.Intrinsic.String.Build("{0}!*!{1}!*!Y",v.Screen.Form_Interface!txt_Material.Text,"TOWER",v.Local.sParams)
+
+f.Global.General.CallWrapperSync(300080,v.Local.sParams)
+f.Intrinsic.Control.CallSub(populateqtygrid)
+
+Program.Sub.cmdBinXFer_Click.End
+
+Program.Sub.Comments.Start
+${$0$}$$}$RLK$}$3/15/2017 2:25:45 PM$}$False
+${$3$}$0$}$$}$0$}$-1$}$$}$12:00:00 AM$}$040617	00124	003739		002000	LS02	0	Y	D	1043	1113	R	0	0	0	
+Program.Sub.Comments.End
