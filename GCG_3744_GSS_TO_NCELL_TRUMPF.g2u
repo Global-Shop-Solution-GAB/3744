@@ -1,0 +1,254 @@
+Program.Sub.ScreenSU.Start
+Gui.SS_Form1..create
+Gui.SS_Form1..caption("Cutoff Date")
+Gui.SS_Form1..size(2250,1740)
+Gui.SS_Form1..position(0,0)
+Gui.SS_Form1..alwaysontop(False)
+Gui.SS_Form1..fontname("Arial")
+Gui.SS_Form1..fontsize(8)
+Gui.SS_Form1..forecolor(0)
+Gui.SS_Form1..fontstyle(,,,)
+Gui.SS_Form1..BackColor(-2147483633)
+Gui.SS_Form1..controlbox(True)
+Gui.SS_Form1..maxbutton(False)
+Gui.SS_Form1..minbutton(False)
+Gui.SS_Form1..mousepointer(0)
+Gui.SS_Form1..moveable(True)
+Gui.SS_Form1..sizeable(False)
+Gui.SS_Form1..ShowInTaskBar(True)
+Gui.SS_Form1..titlebar(True)
+Gui.SS_Form1..MinX(0)
+Gui.SS_Form1..MinY(0)
+Gui.SS_Form1..Event(UnLoad,SS_Form1_UnLoad)
+Gui.SS_Form1.lbl_dtpCutoff.create(label,"Cutoff Date",True,1800,200,1,100,135,True,0,Arial,8,-2147483633,0)
+Gui.SS_Form1.lbl_dtpCutoff.LabelStretch(True)
+Gui.SS_Form1.dtpCutoff.create(datepicker)
+Gui.SS_Form1.dtpCutoff.visible(True)
+Gui.SS_Form1.dtpCutoff.size(1800,345)
+Gui.SS_Form1.dtpCutoff.position(100,335)
+Gui.SS_Form1.dtpCutoff.enabled(True)
+Gui.SS_Form1.dtpCutoff.fontname("Arial")
+Gui.SS_Form1.dtpCutoff.tabstop(True)
+Gui.SS_Form1.dtpCutoff.tabindex(1)
+Gui.SS_Form1.cmdOk.create(button)
+Gui.SS_Form1.cmdOk.Caption("Ok")
+Gui.SS_Form1.cmdOk.visible(True)
+Gui.SS_Form1.cmdOk.size(1005,360)
+Gui.SS_Form1.cmdOk.position(105,765)
+Gui.SS_Form1.cmdOk.enabled(True)
+Gui.SS_Form1.cmdOk.fontname("Arial")
+Gui.SS_Form1.cmdOk.fontsize(8)
+Gui.SS_Form1.cmdOk.tabstop(True)
+Gui.SS_Form1.cmdOk.tabindex(2)
+Gui.SS_Form1.cmdOk.Event(Click,cmdOk_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.dDate.Declare(date)
+
+f.ODBC.Connection!Con.OpenConnection(v.Ambient.PDSN,v.Ambient.PUser,v.Ambient.PPass)
+
+F.Intrinsic.Date.DateAdd("D",5,V.Ambient.Date,V.Local.dDate)
+Gui.SS_Form1.dtpCutoff.Value(V.Local.dDate)
+Gui.SS_Form1..show
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_TO_NCELL_TRUMPF.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub(ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.Main.End
+
+Program.Sub.SS_Form1_UnLoad.Start
+F.Intrinsic.Control.SetErrorHandler("ScreenSS_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+f.ODBC.Connection!Con.Close
+f.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("ScreenSS_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_TO_NCELL_TRUMPF.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.End
+
+Function.Intrinsic.Control.EndIf
+Program.Sub.SS_Form1_UnLoad.End
+
+Program.Sub.cmdOk_Click.Start
+F.Intrinsic.Control.SetErrorHandler("SS_Form1_UnLoad_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+v.Local.sSQL.Declare(string)
+v.Local.sMachines.Declare(string)
+v.Local.dDate.Declare(date)
+v.Local.iCount.Declare(long)
+v.Local.fCompute.Declare(float)
+v.Local.sMaterial.Declare(string)
+v.Local.sFilter.Declare(string)
+v.Local.sFile.Declare(string)
+v.Local.sSeq.Declare(string)
+v.Local.sRet.Declare(string)
+
+GUI.SS_Form1..Visible(False)
+
+F.Intrinsic.UI.InvokeWaitDialog("Gathering Work Orders.")
+
+v.Local.sMachines.Set("LS01','LS02','LS03','LS04','LS05")
+v.Local.dDate.Set(v.Screen.SS_Form1!dtpCutoff.Value)
+
+'Delete the table before using
+F.ODBC.Connection!Con.Execute("DELETE FROM GCG_3744_NCELL_TRUMP WHERE JOB <> ''")
+
+'Update the Job Operations table to have the correct workcenter
+F.Intrinsic.String.Build("SELECT * FROM APSV3_UBDETAIL WHERE SAR IN ('{0}') ",V.Local.sMachines,V.Local.sSQL)
+F.ODBC.Connection!Con.OpenLocalRecordsetRO("rstUB",v.Local.sSQL)
+f.Intrinsic.Control.DoUntil(v.ODBC.Con!rstUB.EOF,=,True)
+	'update Job Operations.Part to the WC from UBDetail
+	F.Intrinsic.String.LPad(V.ODBC.Con!rstUB.FieldValTrim!SEQ,"0",6,V.Local.sSeq)
+	F.Intrinsic.String.Build("update job_operations set PART = '{0}' where JOB = '{1}' and SUFFIX = '{2}' and SEQ = '{3}' ",V.ODBC.Con!rstUB.FieldValTrim!SAR,V.ODBC.Con!rstUB.FieldValTrim!JOB,V.ODBC.Con!rstUB.FieldValTrim!SFX,V.Local.sSeq,V.Local.sSQL)
+	F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+	F.ODBC.Con!rstUB.MoveNext
+
+f.Intrinsic.Control.Loop
+
+'We will open up a data table that will have all jobs
+f.Intrinsic.String.Build("SELECT JOB, SUFFIX, SEQ, DATE_DUE, PART FROM V_JOB_OPERATIONS WHERE LMO = 'L' AND PART IN ('{0}') AND FLAG_CLOSED <> 'Y' AND DATE_DUE <= '{1}' ORDER BY DATE_DUE ASC",V.Local.sMachines,v.Local.dDate.PervasiveDate,v.Local.sSQL)
+f.Data.DataTable.CreateFromSQL("Jobs","Con",v.Local.sSQL,True)
+
+'create two more fields for material and qty
+f.Data.DataTable.AddColumn("Jobs","Material","String","")
+f.Data.DataTable.AddColumn("Jobs","Qty","Float",0)
+
+'we will create a data table for all parts and quantity so we can use it to loop through
+F.Data.DataTable.CreateFromSQL("Inventory","Con","SELECT PART, QTY_ONHAND FROM V_INVENTORY_MSTR ORDER BY PART ASC",True)
+
+'We need to loop through the data table and delete all of the rows that are closed in the header
+f.Intrinsic.Control.For(v.Local.iCount,0,v.DataTable.Jobs.RowCount--,1)
+	f.Intrinsic.String.Build("SELECT FLAG_HOLD,DATE_CLOSED FROM V_JOB_HEADER WHERE JOB = '{0}' AND SUFFIX = '{1}' ",V.DataTable.Jobs(v.Local.iCount).JOB!FieldValTrim,v.DataTable.Jobs(v.Local.iCount).SUFFIX!FieldValTrim,v.Local.sSQL)
+	f.ODBC.Connection!Con.OpenLocalRecordsetRO("rstHead",v.Local.sSQL)
+	f.Intrinsic.Control.If(v.ODBC.Con!rstHead.EOF,=,False)
+		'if hold = Y OR Date Closed <> default then keep it
+		f.Intrinsic.Control.If(v.ODBC.Con!rstHead.FieldValTrim!FLAG_HOLD,=,"Y","OR",V.ODBC.Con!rstHead.FieldValTrim!DATE_CLOSED,<>,"1/1/1900")
+			'delete the row from the data table
+			f.Data.DataTable.DeleteRow("Jobs",v.Local.iCount)
+		f.Intrinsic.Control.Else
+			'job is not on hold and not closed so we can get its material and Qty
+			f.Intrinsic.String.Build("SELECT PART, HOURS_ESTIMATED FROM JOB_OPERATIONS WHERE LMO = 'M' AND JOB = '{0}' AND SUFFIX = '{1}' AND SEQ < '{2}' ORDER BY SEQ DESC ",V.DataTable.Jobs(v.Local.iCount).JOB!FieldValTrim,v.DataTable.Jobs(v.Local.iCount).SUFFIX!FieldValTrim,v.DataTable.Jobs(v.Local.iCount).SEQ.FieldValTrim,v.Local.sSQL)
+			f.ODBC.Connection!Con.OpenLocalRecordsetRO("rstMat",v.Local.sSQL)
+			f.Intrinsic.Control.If(v.ODBC.Con!rstMat.EOF,=,False)
+				'Setting material and Qty in the data table for each job that isn't closed or on hold
+				f.Data.DataTable.SetValue("Jobs",v.Local.iCount,"Material",v.ODBC.Con!rstMat.FieldValTrim!PART,"Qty",V.ODBC.Con!rstMat.FieldValTrim!HOURS_ESTIMATED)
+				'create/open a data view for the material for the inventory table and subtract the value and set the new value
+				v.Local.sMaterial.Set(v.ODBC.Con!rstMat.FieldValTrim!PART)
+				v.Local.fCompute.Set(v.ODBC.Con!rstMat.FieldValTrim!HOURS_ESTIMATED)
+				f.Intrinsic.String.Build("PART = '{0}'",V.Local.sMaterial.Trim,V.Local.sFilter)
+				
+				'If part NOT in inventory_mstr then skip
+				f.Global.Inventory.GetPartInfo(v.Local.sMaterial.Trim,"",v.Local.sRet)
+				f.Intrinsic.Control.If(v.Local.sRet,<>,"***NOPARTFOUND***")
+
+					F.Intrinsic.Control.If(v.DataView.Inventory![v.Local.sMaterial].Exists,=,False)
+						f.Data.DataView.Create("Inventory",V.Local.sMaterial.Trim,22,V.Local.sFilter,"PART ASC")
+						'only create View of part if it exists in DataTable
+						f.Intrinsic.Control.If(v.DataView.Inventory![v.Local.sMaterial].Exists,<>,False)
+							F.Intrinsic.Control.If(V.DataView.Inventory![v.Local.sMaterial](v.DataView.Inventory![v.local.sMaterial].rowcount--).QTY_ONHAND!FieldvalFloat,>=,v.Local.fCompute)
+								'inventory is greater than or equal to the amount we need so we will keep the row and subtract it from the inventory
+								f.Intrinsic.Math.Sub(v.DataView.Inventory![v.Local.sMaterial](v.DataView.Inventory![v.local.sMaterial].rowcount--).QTY_ONHAND!FieldValFloat,v.Local.fCompute,v.Local.fCompute)
+								f.Data.DataView.SetValue("Inventory",v.Local.sMaterial,0,"QTY_ONHAND",V.Local.fCompute)
+							F.Intrinsic.Control.Else
+								'We don't have enough in inventory so we can delete this line
+								f.Data.DataTable.DeleteRow("Jobs",v.Local.iCount)
+							f.Intrinsic.Control.EndIf
+						F.Intrinsic.Control.EndIf
+					f.Intrinsic.Control.Else
+						'The view already exists so we don't need to create it
+						F.Intrinsic.Control.If(V.DataView.Inventory![v.Local.sMaterial](v.DataView.Inventory![v.local.sMaterial].rowcount--).QTY_ONHAND!FieldvalFloat,>=,v.Local.fCompute)
+							'inventory is greater than or equal to the amount we need so we will keep the row and subtract it from the inventory
+							f.Intrinsic.Math.Sub(v.DataView.Inventory![v.Local.sMaterial](v.DataView.Inventory![v.local.sMaterial].rowcount--).QTY_ONHAND!FieldValFloat,v.Local.fCompute,v.Local.fCompute)
+							f.Data.DataView.SetValue("Inventory",v.Local.sMaterial,0,"QTY_ONHAND",V.Local.fCompute)
+						F.Intrinsic.Control.Else
+							'We don't have enough in inventory so we can delete this line
+							f.Data.DataTable.DeleteRow("Jobs",v.Local.iCount)
+						f.Intrinsic.Control.EndIf
+					f.Intrinsic.Control.EndIf
+				f.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.EndIf
+			F.ODBC.Con!rstMat.Close
+		F.Intrinsic.Control.EndIf
+	f.Intrinsic.Control.EndIf
+	f.ODBC.Con!rstHead.Close
+f.Intrinsic.Control.Next(v.Local.iCount)
+
+'we now have all of the jobs that will cover the material that is required.
+f.Data.DataView.Create("Jobs","Remaining",16)
+'Now we can loop through the Data view and update Job Operations and APSV3_JBLINES
+f.Intrinsic.Control.For(v.Local.iCount,0,v.DataView.Jobs!Remaining.RowCount--,1)
+	f.Intrinsic.String.Build("SELECT SAR FROM APSV3_UBDETAIL WHERE JOB = '{0}' AND SFX = '{1}' AND SEQ = '{2}' ",V.DataView.Jobs!Remaining(v.Local.iCount).Job!FieldValTrim,v.DataView.Jobs!Remaining(v.Local.iCount).SUFFIX!FieldValTrim,v.DataView.Jobs!Remaining(v.Local.iCount).SEQ!FieldValTrim,v.Local.sSQL)
+	f.ODBC.Connection!Con.OpenLocalRecordsetRO("rstDetail",v.Local.sSQL)
+	f.Intrinsic.Control.If(v.ODBC.Con!rstDetail.EOF,=,False)
+		'update Job operation part to the WC from UBDetail
+		f.Intrinsic.String.Build("UPDATE JOB_OPERATIONS SET PART = '{0}' WHERE JOB = '{1}' AND SUFFIX = '{2}' AND SEQ = '{3}' ",V.ODBC.Con!rstDetail.FieldValTrim!SAR,v.DataView.Jobs!Remaining(v.Local.iCount).Job!FieldValTrim,v.DataView.Jobs!Remaining(v.Local.iCount).Suffix!FieldValTrim,v.DataView.Jobs!Remaining(v.Local.iCount).Seq!FieldValTrim,v.Local.sSQL)
+		f.ODBC.Connection!Con.Execute(v.Local.sSQL)
+		f.Intrinsic.String.Build("UPDATE APSV3_JBLINES SET SEQRES = '{0}' WHERE JOB = '{1}' AND SFX = '{2}' AND SEQ = '{3}' ",V.ODBC.Con!rstDetail.FieldValTrim!SAR,v.DataView.Jobs!Remaining(v.Local.iCount).Job!FieldValTrim,v.DataView.Jobs!Remaining(v.Local.iCount).Suffix!FieldValTrim,v.DataView.Jobs!Remaining(v.Local.iCount).Seq!FieldValTrim,v.Local.sSQL)
+		F.ODBC.Connection!Con.Execute(V.Local.sSQL)
+	f.Intrinsic.Control.EndIf
+	f.ODBC.Con!rstDetail.Close
+f.Intrinsic.Control.Next(v.Local.iCount)
+
+
+'Save the fields to the Table and then we can call the other programs.
+f.Data.DataTable.SaveToDB("Jobs","Con","GCG_3744_NCELL_TRUMP","JOB*!*SUFFIX*!*SEQ*!*PART*!*DATE_DUE",256,"JOB@!@JOB*!*SUFFIX@!@SUFFIX*!*SEQ@!@SEQ*!*PART@!@PART*!*DATE_DUE@!@DATE_DUE")
+
+f.Data.DataTable.Close("Jobs")
+f.Data.DataTable.Close("Inventory")
+
+f.Intrinsic.UI.CloseWaitDialog
+
+'Launch the GAB Script Sync
+f.Intrinsic.String.Build("{0}\{1}",V.Caller.GasDir,"GCG_3744_GSS_TO_NCELL-JONES.gas",V.Local.sFile)
+f.Global.General.CallSyncGAS(V.Local.sFile)
+'Launch the GAB Scipt Sync
+'f.Intrinsic.String.Build("{0}\{1}",V.Caller.GasDir,"GCG_3744_GSS_WO_To_Trumpf_NET.g2u",V.Local.sFile)
+'f.Global.General.CallSyncGAS(V.Local.sFile)
+
+f.Intrinsic.Control.CallSub(ss_form1_unload)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("SS_Form1_UnLoad_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3744_GSS_TO_NCELL_TRUMPF.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	f.Intrinsic.Control.CallSub(ss_form1_unload)
+Function.Intrinsic.Control.EndIf
+Program.Sub.cmdOk_Click.End
+
+Program.Sub.Comments.Start
+${$0$}$$}$Strider$}$7/18/2016 8:10:36 AM$}$False
+${$3$}$0$}$$}$0$}$-1$}$$}$12:00:00 AM$}$This program will get all of the jobs for both Ncell and Trumpf and then save them to a table. Ncell and Trumpf will then create their files from that table. 
+This allows for the correct amount of jobs to be assigned based on the amount of material they have.
+Program.Sub.Comments.End
+
+Program.Sub.ScreenSS.Start
+SS_Form1{{CAPTION::Cutoff Date
+SS_Form1.CTRL{{NAME::dtpCutoff\\TYPE::6\\CAPTION::Cutoff Date\\TABSTOP::1\\GROUP::-1\\BROWSER::0\\SIZE::1
+SS_Form1.CTRL{{NAME::cmdOk\\TYPE::5\\CAPTION::Ok\\TABSTOP::2\\GROUP::-1\\BROWSER::0\\SIZE::1
+
+Program.Sub.ScreenSS.End
+
